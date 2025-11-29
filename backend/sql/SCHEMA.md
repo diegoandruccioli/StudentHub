@@ -102,3 +102,37 @@ Collega gli utenti agli obiettivi che hanno completato.
   * *Not Null*
 
 > **Nota Tecnica:** Questa tabella usa una **Primary Key Composta** `(id_utente, id_obiettivo)` per impedire fisicamente che lo stesso utente possa ottenere lo stesso obiettivo più di una volta.
+
+---
+
+## 6. Tabella `impostazioni_utente` (Relazione 1-a-1)
+Gestisce le preferenze di visualizzazione dell'interfaccia.
+Ogni utente ha esattamente una riga in questa tabella.
+
+* **id_utente** (`INT`)
+  * 🔑 **Primary Key** & 🔗 **Foreign Key** su `utenti(id)`
+  * 🗑️ **On Delete Cascade**
+* **tema_voti** (`ENUM`)
+  * Valori: `'DEFAULT'` (Cerchio blu), `'RGB'` (Semaforo)
+  * **Default**: `'DEFAULT'`
+* **rgb_soglia_bassa** (`INT`)
+  * **Default**: `18`
+  * ⚠️ **Check**: Deve essere tra 18 e 30.
+  * Logica: I voti *minori* di questo numero saranno visualizzati in ROSSO.
+* **rgb_soglia_alta** (`INT`)
+  * **Default**: `27`
+  * ⚠️ **Check**: Deve essere tra 18 e 30.
+  * Logica: I voti *maggiori o uguali* a questo numero saranno visualizzati in VERDE.
+  * (I voti compresi tra le due soglie saranno GIALLI).
+
+> **Vincoli di Coerenza:**
+* `CONSTRAINT chk_soglie`: Assicura che `rgb_soglia_bassa <= rgb_soglia_alta`.
+
+---
+
+## 7. Automazione (Triggers)
+
+### Trigger: `after_utente_insert`
+* **Evento**: `AFTER INSERT ON utenti`
+* **Azione**: Crea automaticamente una riga nella tabella `impostazioni_utente` per il nuovo utente.
+* **Scopo**: Garantisce che ogni nuovo utente registrato abbia immediatamente le impostazioni di default senza dover scrivere codice aggiuntivo nel backend.

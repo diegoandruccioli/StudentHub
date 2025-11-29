@@ -63,21 +63,40 @@ CREATE TABLE IF NOT EXISTS obiettivi_sbloccati (
     FOREIGN KEY (id_obiettivo) REFERENCES obiettivi(id) ON DELETE CASCADE
 );
 
--- =======================================================
--- DATI INIZIALI (SEEDING)
--- =======================================================
+-- 7. Creazione Tabella Impostazioni Utente (Relazione 1:1)
+CREATE TABLE IF NOT EXISTS impostazioni_utente (
+    id_utente INT PRIMARY KEY, -- La chiave primaria è anche chiave esterna (1 utente = 1 riga impostazioni)
+    
+    -- Modalità visualizzazione voti: 'DEFAULT' (blu) o 'RGB' (colori)
+    tema_voti ENUM('DEFAULT', 'RGB') NOT NULL DEFAULT 'DEFAULT',
+    
+    -- Soglie per i colori (usate solo se tema_voti = 'RGB')
+    -- Esempio: Se soglia_bassa = 20, allora voti < 20 sono ROSSI
+    -- Esempio: Se soglia_alta = 27, allora voti >= 27 sono VERDI
+    -- I voti nel mezzo (da 20 a 26) saranno GIALLI
+    rgb_soglia_bassa INT DEFAULT 18 CHECK (rgb_soglia_bassa >= 18 AND rgb_soglia_bassa <= 30),
+    rgb_soglia_alta INT DEFAULT 27 CHECK (rgb_soglia_alta >= 18 AND rgb_soglia_alta <= 30),
+    
+    -- Vincolo di coerenza: la soglia bassa deve essere minore o uguale alla alta
+    CONSTRAINT chk_soglie CHECK (rgb_soglia_bassa <= rgb_soglia_alta),
 
--- Popolamento della tabella livelli (Esempio)
-INSERT INTO livelli (numero, nome, descrizione, xp_min, xp_max) VALUES 
-(1, 'Matricola Dispersa', 'Hai appena iniziato il tuo viaggio.', 0, 99),
-(2, 'Studente Attento', 'Inizi a capire come funziona.', 100, 499),
-(3, 'Veterano degli Appunti', 'Sai sempre dove trovare le dispense.', 500, 999),
-(4, 'Maestro dei CFU', 'I crediti non hanno segreti per te.', 1000, 2499),
-(5, 'Laureando Leggendario', 'La corona d\'alloro è vicina.', 2500, NULL);
+    FOREIGN KEY (id_utente) REFERENCES utenti(id) ON DELETE CASCADE
+);
+    
+---
 
--- Popolamento iniziale Obiettivi (Esempio)
-INSERT INTO obiettivi (nome, descrizione, xp_valore) VALUES 
-('Primo Passo', 'Registra il tuo primo esame superato', 50),
-('Secchione', 'Ottieni la tua prima Lode', 100),
-('Maratoneta', 'Supera 3 esami in un mese', 150),
-('Giro di Boa', 'Raggiungi 90 CFU', 200);
+-- 8. Creazione del Trigger per l'inserimento automatico
+-- Usiamo il DELIMITER per dire a MySQL dove finisce il blocco di codice del trigger
+DELIMITER //
+
+CREATE TRIGGER after_utente_insert
+AFTER INSERT ON utenti
+FOR EACH ROW
+BEGIN
+    -- Appena viene creato un utente (NEW.id), crea la sua riga di impostazioni di default
+    INSERT INTO impostazioni_utente (id_utente) 
+    VALUES (NEW.id);
+END; //
+
+-- Ripristiniamo il delimitatore standard
+DELIMITER ;
