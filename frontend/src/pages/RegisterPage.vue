@@ -6,31 +6,29 @@ import { useAuthStore } from '../stores/auth'
 const router = useRouter()
 const authStore = useAuthStore()
 
-// Variabili reattive per il form
 const nome = ref('')
 const cognome = ref('')
 const email = ref('')
 const password = ref('')
+const errorMessage = ref('')
 
-// Funzione di Registrazione (simulata)
 const handleRegister = async () => {
-  // 1. Logica simulata: creiamo un utente con i dati inseriti
-  console.log("Registrazione con:", nome.value, cognome.value, email.value)
+  errorMessage.value = ''
   
-  const newUser = { 
-    nome: nome.value, 
-    cognome: cognome.value, 
+  const userData = {
+    nome: nome.value,
+    cognome: cognome.value,
     email: email.value,
-    matricola: '000' + Math.floor(Math.random() * 100000) // Matricola random
+    password: password.value
   }
+
+  const success = await authStore.register(userData)
   
-  const fakeToken = 'new-user-fake-token-' + Date.now()
-  
-  // 2. Salviamo i dati nello store (come se avessimo fatto login)
-  authStore.login(fakeToken, newUser)
-  
-  // 3. Reindirizziamo alla Home
-  router.push('/home')
+  if (success) {
+    router.push('/home')
+  } else {
+    errorMessage.value = authStore.error
+  }
 }
 </script>
 
@@ -53,58 +51,40 @@ const handleRegister = async () => {
         
         <h2 class="text-3xl font-bold text-center mb-8">Registrati a StudentHub</h2>
         
+        <div v-if="errorMessage" class="bg-red-500 text-white p-3 rounded mb-4 text-center text-sm font-bold">
+          {{ errorMessage }}
+        </div>
+        
         <form @submit.prevent="handleRegister" class="space-y-5">
           
           <div>
             <label class="block text-sm font-medium mb-1 pl-1">Inserisci il tuo nome</label>
-            <input 
-              v-model="nome"
-              type="text" 
-              placeholder="Mario"
-              class="w-full px-4 py-3 rounded-lg bg-gray-200 text-gray-900 border border-transparent focus:border-blue-500 focus:bg-white focus:ring-0 transition placeholder-gray-500"
-              required
-            />
+            <input v-model="nome" type="text" placeholder="Mario" required
+              class="w-full px-4 py-3 rounded-lg bg-gray-200 text-gray-900 border border-transparent focus:border-blue-500 focus:bg-white focus:ring-0 transition placeholder-gray-500" />
           </div>
 
           <div>
             <label class="block text-sm font-medium mb-1 pl-1">Inserisci il tuo cognome</label>
-            <input 
-              v-model="cognome"
-              type="text" 
-              placeholder="Rossi"
-              class="w-full px-4 py-3 rounded-lg bg-gray-200 text-gray-900 border border-transparent focus:border-blue-500 focus:bg-white focus:ring-0 transition placeholder-gray-500"
-              required
-            />
+            <input v-model="cognome" type="text" placeholder="Rossi" required
+              class="w-full px-4 py-3 rounded-lg bg-gray-200 text-gray-900 border border-transparent focus:border-blue-500 focus:bg-white focus:ring-0 transition placeholder-gray-500" />
           </div>
 
           <div>
             <label class="block text-sm font-medium mb-1 pl-1">Inserisci la tua mail</label>
-            <input 
-              v-model="email"
-              type="email" 
-              placeholder="example@domain.com"
-              class="w-full px-4 py-3 rounded-lg bg-gray-200 text-gray-900 border border-transparent focus:border-blue-500 focus:bg-white focus:ring-0 transition placeholder-gray-500"
-              required
-            />
+            <input v-model="email" type="email" placeholder="example@domain.com" required
+              class="w-full px-4 py-3 rounded-lg bg-gray-200 text-gray-900 border border-transparent focus:border-blue-500 focus:bg-white focus:ring-0 transition placeholder-gray-500" />
           </div>
 
           <div>
             <label class="block text-sm font-medium mb-1 pl-1">Crea la tua password</label>
-            <input 
-              v-model="password"
-              type="password" 
-              placeholder="your password"
-              class="w-full px-4 py-3 rounded-lg bg-gray-200 text-gray-900 border border-transparent focus:border-blue-500 focus:bg-white focus:ring-0 transition placeholder-gray-500"
-              required
-            />
+            <input v-model="password" type="password" placeholder="your password" required
+              class="w-full px-4 py-3 rounded-lg bg-gray-200 text-gray-900 border border-transparent focus:border-blue-500 focus:bg-white focus:ring-0 transition placeholder-gray-500" />
           </div>
 
           <div class="pt-2">
-            <button 
-              type="submit"
-              class="w-full bg-[#3b76ad] hover:bg-[#2c5a85] text-white font-bold py-3 rounded-full shadow-lg transition transform hover:scale-105"
-            >
-              Registrati a StudentHub
+            <button type="submit" :disabled="authStore.loading"
+              class="w-full bg-[#3b76ad] hover:bg-[#2c5a85] disabled:opacity-50 text-white font-bold py-3 rounded-full shadow-lg transition transform hover:scale-105">
+              {{ authStore.loading ? 'Registrazione...' : 'Registrati a StudentHub' }}
             </button>
           </div>
         </form>
@@ -117,7 +97,6 @@ const handleRegister = async () => {
         </div>
 
       </div>
-
-          </main>
-      </div>
-    </template>
+    </main>
+  </div>
+</template>
