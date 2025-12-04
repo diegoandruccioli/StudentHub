@@ -1,5 +1,5 @@
 <script setup>
-// Nessuna logica necessaria qui
+
 </script>
 
 <template>
