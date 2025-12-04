@@ -13,6 +13,7 @@ const ObjectivesPage = () => import('../pages/ObjectivesPage.vue')
 const AdminPage = () => import('../pages/AdminPage.vue')
 const NotFound = () => import('../pages/NotFound.vue')
 const SettingsPage = () => import('../pages/SettingsPage.vue') // <--- AGGIUNGI QUESTO
+const AboutPage = () => import('../pages/AboutPage.vue') // <--- AGGIUNGI QUESTO
 
 const routes = [
   { path: '/', name: 'Landing', component: LandingPage, meta: { public: true } },
@@ -39,7 +40,7 @@ const router = createRouter({
 
 // Navigation Guard: Protezione delle rotte
 router.beforeEach((to, from, next) => {
-  const publicPages = ['/', '/login', '/register'];
+  const publicPages = ['/', '/login', '/register', '/about'];
   const authRequired = !publicPages.includes(to.path);
   
   // Nota: useremo Pinia per controllare se siamo loggati
