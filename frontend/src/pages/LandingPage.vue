@@ -1,5 +1,4 @@
 <script setup>
-// Rimuovi l'import di AppFooter, ora è gestito globalmente!
 </script>
 
 <template>

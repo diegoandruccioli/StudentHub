@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '../stores/auth' // Importiamo lo store per controllare il login
+import { useAuthStore } from '../stores/auth'
 
 // Import delle pagine
 import LandingPage from '../pages/LandingPage.vue'
@@ -12,10 +12,18 @@ import StatsPage from '../pages/StatsPage.vue'
 import SettingsPage from '../pages/SettingsPage.vue'
 import NotFound from '../pages/NotFound.vue'
 
-// Definiamo le rotte con i metadati di sicurezza
+// Import delle pagine pubbliche (Nuovi file)
+import AboutPage from '../pages/AboutPage.vue'
+import ContactPage from '../pages/ContactPage.vue'
+import PrivacyPage from '../pages/PrivacyPage.vue'
+import TermsPage from '../pages/TermsPage.vue'
+
+// Placeholder per pagine che potrebbero non essere ancora create (opzionale)
+const ObjectivesPage = NotFound // Sostituisci con import reale se esiste
+const AdminPage = NotFound      // Sostituisci con import reale se esiste
+
 const routes = [
-  // 1. ROTTE PUBBLICHE (Guest)
-  // Se un utente loggato prova ad accedervi, verrà reindirizzato alla Home
+  // 1. ROTTE GUEST (Solo per non loggati -> Redirect a Home se loggato)
   { 
     path: '/', 
     name: 'Landing', 
@@ -35,8 +43,7 @@ const routes = [
     meta: { guest: true }
   },
 
-  // 2. ROTTE PROTETTE (Richiedono Login)
-  // Se un utente NON loggato prova ad accedervi, verrà reindirizzato al Login
+  // 2. ROTTE PROTETTE (Solo per loggati -> Redirect a Login se non loggato)
   { 
     path: '/home', 
     name: 'Home', 
@@ -67,12 +74,26 @@ const routes = [
     component: SettingsPage,
     meta: { requiresAuth: true } 
   },
+  { 
+    path: '/objectives', 
+    name: 'Objectives', 
+    component: ObjectivesPage, 
+    meta: { requiresAuth: true } 
+  },
+  { 
+    path: '/admin', 
+    name: 'Admin', 
+    component: AdminPage, 
+    meta: { requiresAuth: true } 
+  },
 
-  // 3. Pagine accessorie (solitamente pubbliche)
-  { path: '/about', name: 'About', component: NotFound }, // Placeholder
-  { path: '/contact', name: 'Contact', component: NotFound }, // Placeholder
-  { path: '/privacy', name: 'Privacy', component: NotFound }, // Placeholder
-  { path: '/terms', name: 'Terms', component: NotFound }, // Placeholder
+  // 3. PAGINE PUBBLICHE (Accessibili a TUTTI)
+  // Nota: Non mettiamo né 'guest' né 'requiresAuth'. 
+  // Il router le lascerà passare sempre (Logica "else" nel guard).
+  { path: '/about', name: 'About', component: AboutPage },
+  { path: '/contact', name: 'Contact', component: ContactPage },
+  { path: '/privacy', name: 'Privacy', component: PrivacyPage },
+  { path: '/terms', name: 'Terms', component: TermsPage },
 
   // 4. Catch-all (Pagina non trovata)
   { 
@@ -88,20 +109,19 @@ const router = createRouter({
 })
 
 // --- NAVIGATION GUARD ---
-// Questo controllo viene eseguito prima di ogni cambio pagina
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   const isAuthenticated = authStore.isAuthenticated
 
-  // CASO 1: La rotta richiede login, ma l'utente NON è autenticato
+  // CASO 1: Rotta protetta e utente NON loggato -> Vai al login
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next('/login') // Reindirizza al login
+    next('/login')
   } 
-  // CASO 2: La rotta è per ospiti (es. Login), ma l'utente È autenticato
+  // CASO 2: Rotta solo per ospiti (es. Login) e utente GIÀ loggato -> Vai alla home
   else if (to.meta.guest && isAuthenticated) {
-    next('/home') // Reindirizza alla dashboard
+    next('/home')
   }
-  // CASO 3: Tutto ok, procedi
+  // CASO 3: Rotta pubblica (About, Terms...) o condizione valida -> Procedi
   else {
     next()
   }

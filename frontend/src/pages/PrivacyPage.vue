@@ -3,8 +3,17 @@ import NavBar from '../components/NavBar.vue'
 </script>
 
 <template>
-  <div class="flex-grow flex flex-col bg-[#f8f9fa] font-sans">
+  <div class="flex-grow flex flex-col font-sans">
     
+    <header class="bg-[#151e2b] text-white py-4 px-8 shadow-md flex items-center">
+      <div class="flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
+          <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+        </svg>
+        <span class="text-2xl font-bold tracking-wide">StudentHub</span>
+      </div>
+    </header>    
     <NavBar />
 
     <main class="flex-grow container mx-auto px-4 py-12 max-w-4xl">
