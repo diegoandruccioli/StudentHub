@@ -28,11 +28,6 @@ dist/
 dist-ssr/
 coverage/
 
-# Environment variables (Security: mai caricare le password!)
-.env
-.env.local
-.env.*.local
-
 # Editor directories and files (BestPracties.pdf Slide 36)
 .vscode/*
 !.vscode/extensions.json

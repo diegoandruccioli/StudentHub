@@ -11,7 +11,6 @@ const StatsPage = () => import('../pages/StatsPage.vue')
 const ObjectivesPage = () => import('../pages/ObjectivesPage.vue')
 const AdminPage = () => import('../pages/AdminPage.vue')
 const NotFound = () => import('../pages/NotFound.vue')
-const AboutPage = () => import('../pages/AboutPage.vue')
 
 const routes = [
   { path: '/', name: 'Landing', component: LandingPage, meta: { public: true } },
@@ -25,6 +24,7 @@ const routes = [
   { path: '/stats', name: 'Stats', component: StatsPage },
   { path: '/objectives', name: 'Objectives', component: ObjectivesPage },
   { path: '/admin', name: 'Admin', component: AdminPage },
+  { path: '/settings', name: 'Settings', component: SettingsPage },
 
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound }
 ]

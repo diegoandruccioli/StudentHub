@@ -3,44 +3,56 @@ import NavBar from '../components/NavBar.vue'
 import { useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import { useSettingsStore } from '../stores/settings' // <--- IMPORTA STORE
 
 const router = useRouter()
+const settingsStore = useSettingsStore() // <--- INIZIALIZZA STORE
 
-// Stato reattivo
 const exams = ref([])
 const loading = ref(true)
 const errorMessage = ref('')
 
-// Funzione per formattare la data (da ISO database a GG/MM/AAAA)
 const formatDate = (dateString) => {
   if (!dateString) return ''
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('it-IT').format(date)
 }
 
-// Funzione per determinare il colore del badge (Logica RGB)
+// NUOVA FUNZIONE COLORI COLLEGATA AL DB
 const getBadgeColor = (voto) => {
-  if (voto >= 27) return 'bg-green-600 text-white' // Verde scuro per voti alti
-  if (voto >= 20) return 'bg-yellow-400 text-black' // Giallo per voti medi
-  return 'bg-red-500 text-white' // Rosso per voti bassi
+  const prefs = settingsStore.preferences;
+
+  // Se l'utente vuole lo stile Standard
+  if (prefs.tema_voti === 'DEFAULT') {
+    return 'bg-[#3b76ad] text-white'; 
+  }
+
+  // Se l'utente vuole lo stile RGB
+  if (voto < prefs.rgb_soglia_bassa) {
+    return 'bg-red-500 text-white';
+  } else if (voto >= prefs.rgb_soglia_alta) {
+    return 'bg-green-600 text-white';
+  } else {
+    return 'bg-yellow-400 text-black';
+  }
 }
 
 const navigateToInsert = () => {
   router.push('/career/insert')
 }
 
-// AL CARICAMENTO DELLA PAGINA: Recupera i dati dal Backend
 onMounted(async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/exams', {
-      withCredentials: true // FONDAMENTALE: Invia il cookie HTTPOnly con il token
+    // Carica le impostazioni e gli esami in parallelo
+    await Promise.all([
+        settingsStore.fetchSettings(),
+        axios.get('http://localhost:3000/api/exams', { withCredentials: true })
+    ]).then(([_, responseExams]) => {
+        exams.value = responseExams.data
     })
-    exams.value = response.data
   } catch (error) {
-    console.error("Errore recupero esami:", error)
-    errorMessage.value = "Impossibile caricare la carriera. Assicurati di essere loggato."
-    
-    // Se il token è scaduto (401), rimanda al login
+    console.error("Errore recupero dati:", error)
+    errorMessage.value = "Impossibile caricare i dati."
     if (error.response && error.response.status === 401) {
       router.push('/login')
     }
@@ -90,12 +102,6 @@ onMounted(async () => {
       <div v-else-if="exams.length === 0" class="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-gray-300">
         <p class="text-2xl text-gray-400 font-bold mb-4">Il tuo libretto è vuoto 🎓</p>
         <p class="text-gray-500">Inizia inserendo il tuo primo esame superato!</p>
-        <button 
-            @click="navigateToInsert"
-            class="mt-6 text-[#3b76ad] font-bold underline hover:text-[#2c5a85]"
-          >
-            Inserisci il primo esame
-          </button>
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

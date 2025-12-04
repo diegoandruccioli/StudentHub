@@ -12,16 +12,41 @@ L'architettura segue il pattern client-server con due entità distinte:
 
 ## 🎨 Mockup & Design
 
-Il design dell'interfaccia utente (UI) e il flusso dell'esperienza utente (UX) sono stati progettati su Canva. Puoi visualizzare il prototipo interattivo al seguente link:
+Il design dell'interfaccia utente (UI) e il flusso dell'esperienza utente (UX) sono stati realizzati a cura di **Rei Mici**.
 
-👉 **[Visualizza il Mockup Completo su Canva](https://www.canva.com/design/DAG5nGBXND4/Boom0zBj1rBkACGib-mlAg/edit?utm_content=DAG5nGBXND4&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)**
+Qui puoi consultare l'evoluzione grafica del progetto:
+
+* 👉 **[Primo Mockup (Pre-revisione)](https://www.canva.com/design/DAG5nGBXND4/Boom0zBj1rBkACGib-mlAg/edit?utm_content=DAG5nGBXND4&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)**: La bozza iniziale presentata e discussa in aula con professori e colleghi.
+* 👉 **[Mockup Finale (Definitivo)](https://www.canva.com/design/DAG6QVv9ajQ/6sjTh2q4dOybFtLEprm3mQ/edit?utm_content=DAG6QVv9ajQ&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)**: La versione aggiornata e consolidata in seguito ai feedback ricevuti.
+
+### Anteprima Schermate
+| Landing Page | Home Studente |
+| :---: | :---: |
+| ![Landing]() | ![Home]() |
+
+| Statistiche | Obiettivi & Classifica |
+| :---: | :---: |
+| ![Statistiche]() | ![Obiettivi]() |
 
 ## 🚀 Tecnologie Utilizzate
 
-* **Frontend:** Vue 3, Tailwind CSS, Chart.js (o D3.js), Axios.
-* **Backend:** Express.js, JSON Web Token (JWT) per l'autenticazione sicura.
-* **Database:** MySQL.
-* **Tools:** Docker, Jest (Testing), ESLint + Prettier.
+### Frontend
+* **Vue 3** (Composition API)
+* **Vite** (Build tool)
+* **Tailwind CSS** (Styling & Responsiveness)
+* **Chart.js** (Data Visualization)
+* **Axios** (HTTP Client)
+
+### Backend
+* **Node.js** & **Express**
+* **MySQL** (Database Relazionale)
+* **JSON Web Token (JWT)** (Autenticazione sicura)
+* **Bcrypt** (Hashing password)
+
+### Tools & DevOps
+* **Docker** (Containerizzazione)
+* **Jest** (Testing TDD)
+* **ESLint + Prettier** (Code Quality)
 
 ## 📂 Struttura della Repository
 
