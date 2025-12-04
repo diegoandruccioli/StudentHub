@@ -12,7 +12,7 @@ import StatsPage from '../pages/StatsPage.vue'
 import SettingsPage from '../pages/SettingsPage.vue'
 import NotFound from '../pages/NotFound.vue'
 
-// Import delle pagine pubbliche (Nuovi file)
+// Import delle pagine pubbliche che troviamo nel footer
 import AboutPage from '../pages/AboutPage.vue'
 import ContactPage from '../pages/ContactPage.vue'
 import PrivacyPage from '../pages/PrivacyPage.vue'
@@ -88,7 +88,7 @@ const routes = [
   },
 
   // 3. PAGINE PUBBLICHE (Accessibili a TUTTI)
-  // Nota: Non mettiamo né 'guest' né 'requiresAuth'. 
+  // Non mettiamo né 'guest' né 'requiresAuth'. 
   // Il router le lascerà passare sempre (Logica "else" nel guard).
   { path: '/about', name: 'About', component: AboutPage },
   { path: '/contact', name: 'Contact', component: ContactPage },
