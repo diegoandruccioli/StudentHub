@@ -11,6 +11,8 @@ const StatsPage = () => import('../pages/StatsPage.vue')
 const ObjectivesPage = () => import('../pages/ObjectivesPage.vue')
 const AdminPage = () => import('../pages/AdminPage.vue')
 const NotFound = () => import('../pages/NotFound.vue')
+const AboutPage = () => import('../pages/AboutPage.vue')
+
 
 const routes = [
   { path: '/', name: 'Landing', component: LandingPage, meta: { public: true } },
