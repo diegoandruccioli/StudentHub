@@ -13,7 +13,11 @@ export const register = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Tutti i campi sono obbligatori' });
         }
 
-        const [existingUsers] = await pool.query<RowDataPacket[]>('SELECT * FROM utenti WHERE email = ?', [email]);
+        const [existingUsers] = await pool.query<RowDataPacket[]>(`
+            SELECT * 
+            FROM utenti 
+            WHERE email = ?
+        `, [email]);
         if (existingUsers.length > 0) {
             return res.status(409).json({ message: 'Email già registrata' });
         }
@@ -21,10 +25,10 @@ export const register = async (req: Request, res: Response) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        const [result] = await pool.query<ResultSetHeader>(
-            'INSERT INTO utenti (nome, cognome, email, password) VALUES (?, ?, ?, ?)',
-            [nome, cognome, email, hashedPassword]
-        );
+        const [result] = await pool.query<ResultSetHeader>(`
+            INSERT INTO utenti (nome, cognome, email, password) 
+            VALUES (?, ?, ?, ?)
+        `, [nome, cognome, email, hashedPassword]);
 
         const user = {
             id: result.insertId,
@@ -52,7 +56,11 @@ export const login = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Inserisci email e password' });
         }
 
-        const [users] = await pool.query<RowDataPacket[]>('SELECT * FROM utenti WHERE email = ?', [email]);
+        const [users] = await pool.query<RowDataPacket[]>(`
+            SELECT * 
+            FROM utenti 
+            WHERE email = ?
+        `, [email]);
         const user = users[0];
 
         if (!user || !(await bcrypt.compare(password, user.password))) {

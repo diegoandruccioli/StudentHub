@@ -7,10 +7,12 @@ export const getStats = async (req: Request, res: Response) => {
         if (!req.user) return res.status(401).json({ message: 'Non autenticato' });
 
         // Recupero degli esami ordinati per data (per grafico dell'andamento)
-        const [exams] = await pool.query<RowDataPacket[]>(
-            'SELECT nome, voto, cfu, data, lode FROM esami WHERE id_utente = ? ORDER BY data ASC',
-            [req.user.id]
-        );
+        const [exams] = await pool.query<RowDataPacket[]>(`
+            SELECT nome, voto, cfu, data, lode 
+            FROM esami 
+            WHERE id_utente = ? 
+            ORDER BY data ASC
+        `, [req.user.id]);
 
         // Caso base: Studente senza esami
         if (exams.length === 0) {

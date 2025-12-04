@@ -8,15 +8,20 @@ export const getLeaderboard = async (req: Request, res: Response) => {
         if (!req.user) return res.status(401).json({ message: 'Non autenticato' });
 
         // Classifica globale
-        const [leaderboard] = await pool.query<RowDataPacket[]>(
-            'SELECT id, nome, cognome, xp_totali FROM utenti WHERE ruolo = "0" ORDER BY xp_totali DESC LIMIT 50'
-        );
+        const [leaderboard] = await pool.query<RowDataPacket[]>(`
+            SELECT id, nome, cognome, xp_totali 
+            FROM utenti 
+            WHERE ruolo = "0" 
+            ORDER BY xp_totali DESC 
+            LIMIT 50
+        `);
 
         // Calcolo posizione utente loggato
-        const [rankResult] = await pool.query<RowDataPacket[]>(
-            'SELECT COUNT(*) + 1 as `rank` FROM utenti WHERE xp_totali > (SELECT xp_totali FROM utenti WHERE id = ?) AND ruolo = "0"',
-            [req.user.id]
-        );
+        const [rankResult] = await pool.query<RowDataPacket[]>(`
+            SELECT COUNT(*) + 1 as \`rank\` 
+            FROM utenti 
+            WHERE xp_totali > (SELECT xp_totali FROM utenti WHERE id = ?) AND ruolo = "0"
+        `, [req.user.id]);
 
         const myRank = rankResult[0].rank;
 

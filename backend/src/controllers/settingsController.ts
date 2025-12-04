@@ -7,10 +7,11 @@ export const getSettings = async (req: Request, res: Response) => {
     try {
         if (!req.user) return res.status(401).json({ message: 'Non autenticato' });
 
-        const [settings] = await pool.query<RowDataPacket[]>(
-            'SELECT tema_voti, rgb_soglia_bassa, rgb_soglia_alta FROM impostazioni_utente WHERE id_utente = ?', 
-            [req.user.id]
-        );
+        const [settings] = await pool.query<RowDataPacket[]>(`
+            SELECT tema_voti, rgb_soglia_bassa, rgb_soglia_alta 
+            FROM impostazioni_utente 
+            WHERE id_utente = ?
+        `, [req.user.id]);
 
         if (settings.length === 0) {
             return res.status(404).json({ message: 'Impostazioni non trovate' });
@@ -43,10 +44,11 @@ export const updateSettings = async (req: Request, res: Response) => {
             }
         }
 
-        await pool.query(
-            'UPDATE impostazioni_utente SET tema_voti = ?, rgb_soglia_bassa = ?, rgb_soglia_alta = ? WHERE id_utente = ?',
-            [tema_voti, rgb_soglia_bassa, rgb_soglia_alta, req.user.id]
-        );
+        await pool.query(`
+            UPDATE impostazioni_utente 
+            SET tema_voti = ?, rgb_soglia_bassa = ?, rgb_soglia_alta = ? 
+            WHERE id_utente = ?
+        `, [tema_voti, rgb_soglia_bassa, rgb_soglia_alta, req.user.id]);
 
         res.json({ 
             message: 'Impostazioni aggiornate con successo',

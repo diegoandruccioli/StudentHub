@@ -8,10 +8,12 @@ export const getExams = async (req: Request, res: Response) => {
         // req.user esiste perchè definito nel middleware 'protect'
         if (!req.user) return res.status(401).json({ message: 'Utente non autenticato' });
 
-        const [exams] = await pool.query(
-            'SELECT * FROM esami WHERE id_utente = ? ORDER BY data DESC', 
-            [req.user.id]
-        );
+        const [exams] = await pool.query(`
+            SELECT * 
+            FROM esami 
+            WHERE id_utente = ? 
+            ORDER BY data DESC
+        `, [req.user.id]);
         res.json(exams);
     } catch (error) {
         console.error(error);
@@ -58,17 +60,18 @@ export const addExam = async (req: Request, res: Response) => {
             if (lode) xp += 50;
             totalXp += xp;
 
-            const [result] = await connection.query<ResultSetHeader>(
-                'INSERT INTO esami (id_utente, nome, voto, lode, cfu, data, xp_guadagnati) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                [req.user.id, nome, voto, lode || false, cfu, data, xp]
-            );
+            const [result] = await connection.query<ResultSetHeader>(`
+                INSERT INTO esami (id_utente, nome, voto, lode, cfu, data, xp_guadagnati) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            `, [req.user.id, nome, voto, lode || false, cfu, data, xp]);
             insertedIds.push(result.insertId);
         }
 
-        await connection.query(
-            'UPDATE utenti SET xp_totali = xp_totali + ? WHERE id = ?',
-            [totalXp, req.user.id]
-        );
+        await connection.query(`
+            UPDATE utenti 
+            SET xp_totali = xp_totali + ? 
+            WHERE id = ?
+        `, [totalXp, req.user.id]);
 
         await connection.commit();
 
@@ -96,7 +99,11 @@ export const deleteExam = async (req: Request, res: Response) => {
 
         const { id } = req.params;
 
-        const [exam] = await connection.query<RowDataPacket[]>('SELECT xp_guadagnati FROM esami WHERE id = ? AND id_utente = ?', [id, req.user.id]);
+        const [exam] = await connection.query<RowDataPacket[]>(`
+            SELECT xp_guadagnati 
+            FROM esami 
+            WHERE id = ? AND id_utente = ?
+        `, [id, req.user.id]);
         
         if (exam.length === 0) {
             return res.status(404).json({ message: 'Esame non trovato o non autorizzato' });
@@ -108,10 +115,11 @@ export const deleteExam = async (req: Request, res: Response) => {
 
         await connection.query('DELETE FROM esami WHERE id = ?', [id]);
 
-        await connection.query(
-            'UPDATE utenti SET xp_totali = xp_totali - ? WHERE id = ?',
-            [xpDaRimuovere, req.user.id]
-        );
+        await connection.query(`
+            UPDATE utenti 
+            SET xp_totali = xp_totali - ? 
+            WHERE id = ?
+        `, [xpDaRimuovere, req.user.id]);
 
         await connection.commit();
         res.json({ message: 'Esame eliminato, XP ricalcolati' });
