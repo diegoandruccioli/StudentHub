@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '../stores/auth' // Lo configureremo dopo
+import { useAuthStore } from '../stores/auth'
 
-// Importiamo le pagine (Lazy loading per performance migliori)
 const LandingPage = () => import('../pages/LandingPage.vue')
 const LoginPage = () => import('../pages/LoginPage.vue')
 const RegisterPage = () => import('../pages/RegisterPage.vue')
@@ -12,13 +11,14 @@ const StatsPage = () => import('../pages/StatsPage.vue')
 const ObjectivesPage = () => import('../pages/ObjectivesPage.vue')
 const AdminPage = () => import('../pages/AdminPage.vue')
 const NotFound = () => import('../pages/NotFound.vue')
+const AboutPage = () => import('../pages/AboutPage.vue')
 
 const routes = [
   { path: '/', name: 'Landing', component: LandingPage, meta: { public: true } },
   { path: '/login', name: 'Login', component: LoginPage, meta: { public: true } },
   { path: '/register', name: 'Register', component: RegisterPage, meta: { public: true } },
+  { path: '/about', name: 'About', component: AboutPage, meta: { public: true } },
   
-  // Rotte Protette (Richiedono Login)
   { path: '/home', name: 'Home', component: HomePage },
   { path: '/career', name: 'Career', component: CareerPage },
   { path: '/career/insert', name: 'InsertExam', component: InsertExamPage },
@@ -26,7 +26,6 @@ const routes = [
   { path: '/objectives', name: 'Objectives', component: ObjectivesPage },
   { path: '/admin', name: 'Admin', component: AdminPage },
 
-  // Catch-all per 404
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound }
 ]
 
@@ -35,19 +34,10 @@ const router = createRouter({
   routes
 })
 
-// Navigation Guard: Protezione delle rotte
 router.beforeEach((to, from, next) => {
-  const publicPages = ['/', '/login', '/register'];
+  const publicPages = ['/', '/login', '/register', '/about']; 
   const authRequired = !publicPages.includes(to.path);
-  
-  // Nota: useremo Pinia per controllare se siamo loggati
-  // Per ora commentiamo il controllo reale finché non facciamo lo store
-  // const auth = useAuthStore();
-  
-  // if (authRequired && !auth.token) {
-  //   return next('/login');
-  // }
-
+  // ... logica auth esistente ...
   next();
 })
 
