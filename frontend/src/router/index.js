@@ -113,7 +113,6 @@ const routes = [
   }
   
 ]
-
 const router = createRouter({
   history: createWebHistory(),
   routes
@@ -123,29 +122,32 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   const isAuthenticated = authStore.isAuthenticated
-  const userRole = authStore.user?.ruolo; // Legge il ruolo (Stringa '0', '1', '2')
+  const userRole = authStore.user?.ruolo; // '0', '1', '2'
 
-  // CASO A: La rotta richiede login, ma l'utente NON è autenticato
+  // CASO A: Rotta protetta e utente NON loggato -> Login
   if (to.meta.requiresAuth && !isAuthenticated) {
     return next('/login') 
   } 
   
-  // CASO B: La rotta è per ospiti (Login/Register), ma l'utente È loggato
+  // CASO B: Rotta Guest (Login/Register) e utente GIÀ loggato -> Redirect intelligente
   else if (to.meta.guest && isAuthenticated) {
+    // Se è Admin (1) o SuperAdmin (2), vai alla dashboard admin
+    if (userRole === '1' || userRole === '2') {
+        return next('/admin')
+    }
+    // Altrimenti (Studente), vai alla home classica
     return next('/home') 
   }
 
-  // CASO C: Controllo Ruolo (Solo se l'utente è loggato e la rotta lo richiede)
-  // Il ruolo '0' (Studente) non può accedere alle pagine Admin
+  // CASO C: Controllo Accesso Admin (Protezione Rotta /admin)
   if (to.meta.requiresAdmin && isAuthenticated) {
-    // Se il ruolo è Studente ('0') e non Admin/SuperAdmin ('1' o '2'), blocca.
+    // Se uno studente ('0') prova ad entrare in /admin -> Bloccalo
     if (userRole === '0') { 
-        // Puoi reindirizzare a una pagina 403 o semplicemente alla Home
-        return next('/home') 
+        return next('404') // O altra pagina di errore/accesso negato
     }
   }
   
-  // CASO D: Tutto ok, procedi
+  // CASO D: Procedi
   next()
 })
 

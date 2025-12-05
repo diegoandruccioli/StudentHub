@@ -18,7 +18,13 @@ const handleLogin = async () => {
   const success = await authStore.login(email.value, password.value)
   
   if (success) {
-    router.push('/home')
+    // CONTROLLO RUOLO: Se Admin/SuperAdmin vai su /admin, altrimenti /home
+    const role = authStore.user?.ruolo
+    if (role === '1' || role === '2') {
+      router.push('/admin')
+    } else {
+      router.push('/home')
+    }
   } else {
     errorMessage.value = authStore.error
   }
@@ -83,7 +89,7 @@ const handleLogin = async () => {
 
         <div class="mt-6 text-center text-sm">
           Non hai un account? 
-          <router-link to="/register" class="underline hover:text-[#3b76ad] transition">
+          <router-link to="/register" class="underline hover:text-[#3b76ad] transition font-medium">
             Registrati
           </router-link>
         </div>
