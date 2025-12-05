@@ -13,13 +13,21 @@ import SettingsPage from '../pages/SettingsPage.vue'
 import NotFound from '../pages/NotFound.vue'
 import ObjectivesPage from '../pages/ObjectivesPage.vue'
 
-// Import delle pagine pubbliche che troviamo nel footer
+// Import delle pagine pubbliche (Nuovi file)
 import AboutPage from '../pages/AboutPage.vue'
 import ContactPage from '../pages/ContactPage.vue'
 import PrivacyPage from '../pages/PrivacyPage.vue'
 import TermsPage from '../pages/TermsPage.vue'
 
+<<<<<<< HEAD
+// Placeholder per pagine che potrebbero non essere ancora create (opzionale)
+const ObjectivesPage = NotFound // Sostituisci con import reale se esiste
+
+
+const AdminPage = () => import('../pages/AdminPage.vue')
+=======
 const AdminPage = NotFound      // Sostituisci con import reale se esiste
+>>>>>>> 86579ea67eba14caa7f78cd5d952a4cda2307228
 
 const routes = [
   // 1. ROTTE GUEST (Solo per non loggati -> Redirect a Home se loggato)
@@ -87,12 +95,20 @@ const routes = [
   },
 
   // 3. PAGINE PUBBLICHE (Accessibili a TUTTI)
-  // Non mettiamo né 'guest' né 'requiresAuth'. 
+  // Nota: Non mettiamo né 'guest' né 'requiresAuth'. 
   // Il router le lascerà passare sempre (Logica "else" nel guard).
   { path: '/about', name: 'About', component: AboutPage },
   { path: '/contact', name: 'Contact', component: ContactPage },
   { path: '/privacy', name: 'Privacy', component: PrivacyPage },
   { path: '/terms', name: 'Terms', component: TermsPage },
+
+  //ADMIN ROUTE CON CHECK RUOLO
+  { 
+    path: '/admin', 
+    name: 'Admin', 
+    component: AdminPage, 
+    meta: { requiresAuth: true, requiresAdmin: true } // <-- NUOVO CHECK RUOLO
+  },
 
   // 4. Catch-all (Pagina non trovata)
   { 
@@ -100,6 +116,7 @@ const routes = [
     name: 'NotFound', 
     component: NotFound 
   }
+  
 ]
 
 const router = createRouter({
@@ -111,19 +128,30 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   const isAuthenticated = authStore.isAuthenticated
+  const userRole = authStore.user?.ruolo; // Legge il ruolo (Stringa '0', '1', '2')
 
-  // CASO 1: Rotta protetta e utente NON loggato -> Vai al login
+  // CASO A: La rotta richiede login, ma l'utente NON è autenticato
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next('/login')
+    return next('/login') 
   } 
-  // CASO 2: Rotta solo per ospiti (es. Login) e utente GIÀ loggato -> Vai alla home
+  
+  // CASO B: La rotta è per ospiti (Login/Register), ma l'utente È loggato
   else if (to.meta.guest && isAuthenticated) {
-    next('/home')
+    return next('/home') 
   }
-  // CASO 3: Rotta pubblica (About, Terms...) o condizione valida -> Procedi
-  else {
-    next()
+
+  // CASO C: Controllo Ruolo (Solo se l'utente è loggato e la rotta lo richiede)
+  // Il ruolo '0' (Studente) non può accedere alle pagine Admin
+  if (to.meta.requiresAdmin && isAuthenticated) {
+    // Se il ruolo è Studente ('0') e non Admin/SuperAdmin ('1' o '2'), blocca.
+    if (userRole === '0') { 
+        // Puoi reindirizzare a una pagina 403 o semplicemente alla Home
+        return next('/home') 
+    }
   }
+  
+  // CASO D: Tutto ok, procedi
+  next()
 })
 
 export default router
