@@ -1,7 +1,7 @@
 <script setup>
 import NavBar from '../components/NavBar.vue'
 import { useRouter } from 'vue-router'
-import { ref, onMounted, watch } from 'vue' // <--- Aggiunto 'watch'
+import { ref, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useSettingsStore } from '../stores/settings'
 
