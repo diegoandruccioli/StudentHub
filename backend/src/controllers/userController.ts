@@ -9,7 +9,7 @@ export const getLeaderboard = async (req: Request, res: Response) => {
 
         // Classifica globale
         const [leaderboard] = await pool.query<RowDataPacket[]>(`
-            SELECT id, nome, cognome, xp_totali 
+            SELECT id, nome, xp_totali 
             FROM utenti 
             WHERE ruolo = "0" 
             ORDER BY xp_totali DESC 
