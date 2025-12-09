@@ -119,3 +119,91 @@ export const getAllBadges = async (req: Request, res: Response): Promise<void> =
         res.status(500).json({ message: 'Errore nel recupero del catalogo badge' });
     }
 };
+
+// --- Funzione Helper per controllare i badge (Non esposta via API ma chiamata internamente) ---
+export const checkBadges = async (userId: number, connection: any): Promise<ObiettivoSbloccato[]> => {
+    const newBadges: ObiettivoSbloccato[] = [];
+
+    // 1. Recupera statistiche utente
+    // Nota: usiamo la connessione passata (che potrebbe essere in una transazione)
+    
+    // BADGE 1: Primo Passo (Primo esame superato) - ID 1
+    // BADGE 2: Secchione (Prima Lode) - ID 2
+    // BADGE 3: Maratoneta (3 esami in un mese) - ID 3
+    // BADGE 4: Giro di Boa (90 CFU) - ID 4
+
+    // Recuperiamo tutti gli esami dell'utente per fare i calcoli
+    const [exams] = await connection.query('SELECT * FROM esami WHERE id_utente = ? ORDER BY data ASC', [userId]);
+    
+    // Se non ha esami, inutile continuare
+    if (exams.length === 0) return [];
+
+    // Recuperiamo i badge già sbloccati per non ridarli
+    const [existingBadgesRows] = await connection.query('SELECT id_obiettivo FROM obiettivi_sbloccati WHERE id_utente = ?', [userId]);
+    const existingBadgeIds = new Set(existingBadgesRows.map((r: any) => r.id_obiettivo));
+
+    // --- LOGICA BADGE ---
+
+    // 1. Primo Passo (ID 1)
+    if (!existingBadgeIds.has(1) && exams.length >= 1) {
+        const badgeId = 1;
+        await assignBadge(userId, badgeId, connection, newBadges);
+    }
+
+    // 2. Secchione (ID 2) - Una lode
+    if (!existingBadgeIds.has(2)) {
+        const hasLode = exams.some((e: any) => e.lode === 1 || e.lode === true);
+        if (hasLode) {
+            await assignBadge(userId, 2, connection, newBadges);
+        }
+    }
+
+    // 3. Maratoneta (ID 3) - 3 esami in un mese
+    if (!existingBadgeIds.has(3)) {
+        // Raggruppa esami per anno-mese
+        const examsByMonth: { [key: string]: number } = {};
+        for (const exam of exams) {
+            const date = new Date(exam.data);
+            const key = `${date.getFullYear()}-${date.getMonth()}`; // es: 2023-10
+            examsByMonth[key] = (examsByMonth[key] || 0) + 1;
+            
+            if (examsByMonth[key] >= 3) {
+                await assignBadge(userId, 3, connection, newBadges);
+                break; // Usciamo appena trovato
+            }
+        }
+    }
+
+    // 4. Giro di Boa (ID 4) - 90 CFU
+    if (!existingBadgeIds.has(4)) {
+        const totalCfu = exams.reduce((sum: number, e: any) => sum + e.cfu, 0);
+        if (totalCfu >= 90) {
+            await assignBadge(userId, 4, connection, newBadges);
+        }
+    }
+
+    return newBadges;
+};
+
+// Funzione helper privata per assegnare badge
+const assignBadge = async (userId: number, badgeId: number, connection: any, newBadgesList: ObiettivoSbloccato[]) => {
+    // 1. Recupera info badge
+    const [badgeRows] = await connection.query('SELECT * FROM obiettivi WHERE id = ?', [badgeId]);
+    if (badgeRows.length === 0) return;
+    const badge = badgeRows[0];
+
+    // 2. Inserisci in obiettivi_sbloccati
+    await connection.query('INSERT INTO obiettivi_sbloccati (id_utente, id_obiettivo, data_conseguimento) VALUES (?, ?, NOW())', [userId, badgeId]);
+
+    // 3. Aggiungi XP del badge all'utente
+    await connection.query('UPDATE utenti SET xp_totali = xp_totali + ? WHERE id = ?', [badge.xp_valore, userId]);
+
+    // 4. Aggiungi alla lista di ritorno
+    newBadgesList.push({
+        id_obiettivo: badge.id,
+        nome: badge.nome,
+        descrizione: badge.descrizione,
+        xp_valore: badge.xp_valore,
+        data_conseguimento: new Date()
+    } as ObiettivoSbloccato);
+};
