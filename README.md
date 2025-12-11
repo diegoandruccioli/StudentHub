@@ -141,8 +141,13 @@ Eseguire gli script SQL presenti nella cartella `/backend/sql` nel seguente ordi
 ```bash
 cd backend
 npm install
-# Creare un file .env basato sulle proprie configurazioni (vedi .env.example se presente)
-# DB_HOST=localhost, DB_USER=root, DB_NAME=studenthub_db...
+# Configurare il file .env partendo dall'esempio
+cp .env.example .env
+
+# NOTA IMPORTANTE SULLA PASSWORD DEL DATABASE:
+# - Il file .env.example è pre-configurato con password VUOTA (DB_PASSWORD=) per l'uso locale.
+# - Se usi Docker, la password sarà automaticamente 'root' (sovrascritta da docker-compose).
+# - Se hai una password diversa sulla tua macchina locale, aggiorna il file .env appena creato.
 npm run dev
 ```
 
