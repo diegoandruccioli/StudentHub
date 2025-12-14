@@ -13,7 +13,6 @@ const rows = ref([
 ])
 
 const addRow = () => {
-  // Aggiunge riga solo se siamo sotto il limite (ridondante col v-if ma più sicuro)
   if (rows.value.length < 5) {
     rows.value.push({ nome: '', voto: '', lode: false, data: '', cfu: '' })
   }
@@ -40,6 +39,9 @@ const submitExams = async () => {
       }
       if (row.voto < 18 || row.voto > 30) {
         throw new Error(`Il voto ${row.voto} non è valido (18-30).`)
+      }
+      if (row.cfu == 0 || row.cfu > 48) {
+        throw new Error(`I CFU ${row.cfu} non sono validi (1-48).`)
       }
       
       payload.push({

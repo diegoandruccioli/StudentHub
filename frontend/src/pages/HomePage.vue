@@ -1,8 +1,43 @@
 <script setup>
 import NavBar from '../components/NavBar.vue'
 import { useRouter } from 'vue-router'
+import { ref, onMounted, computed } from 'vue'
+import axios from 'axios'
 
 const router = useRouter()
+
+// Stato reattivo per i dati di gamification
+const loading = ref(true)
+const gamificationData = ref({
+  xp_totali: 0,
+  livello: {
+    numero: 0,
+    nome: 'Caricamento...',
+  },
+  progress: {
+    percentuale: 0,
+    xp_mancanti: 0,
+    prossima_soglia: 100
+  }
+})
+
+// Calcoliamo la percentuale per lo stile CSS (con un minimo per estetica)
+const progressWidth = computed(() => {
+  return `${Math.max(5, gamificationData.value.progress.percentuale)}%`
+})
+
+onMounted(async () => {
+  try {
+    const response = await axios.get('http://localhost:3000/api/gamification/status', { 
+      withCredentials: true 
+    })
+    gamificationData.value = response.data
+  } catch (error) {
+    console.error("Errore recupero livello:", error)
+  } finally {
+    loading.value = false
+  }
+})
 </script>
 
 <template>
@@ -12,23 +47,41 @@ const router = useRouter()
 
     <main class="flex-grow flex flex-col items-center justify-center p-4">
 
-      <div class="text-center mb-16">
+      <div class="text-center mb-16 w-full max-w-2xl">
+        
         <h1 class="text-3xl md:text-4xl font-bold italic mb-4 text-[#151e2b]">
-          Lv. 1 - Mago dello Studio
+          <span v-if="loading" class="animate-pulse">Caricamento...</span>
+          <span v-else>
+            Lv. {{ gamificationData.livello.numero }} - {{ gamificationData.livello.nome }}
+          </span>
         </h1>
         
-        <div class="relative w-64 md:w-80 h-8 bg-gray-300 border-4 border-[#151e2b] rounded-sm mx-auto flex items-center shadow-lg">
+        <div class="relative w-full md:w-3/4 h-8 bg-gray-300 border-4 border-[#151e2b] rounded-sm mx-auto flex items-center shadow-lg overflow-visible mt-8">
           
-          <div class="absolute -left-4 top-1/2 transform -translate-y-1/2 z-10">
+          <div 
+            class="absolute top-1/2 transform -translate-y-1/2 z-10 transition-all duration-1000 ease-out"
+            :style="{ left: `calc(${progressWidth} - 22px)` }"
+          >
              <svg width="44" height="44" viewBox="0 0 24 24" fill="#ef4444" stroke="#151e2b" stroke-width="2" class="drop-shadow-md">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
              </svg>
           </div>
           
-          <div class="h-full bg-[#3b76ad] w-1/3 border-r-4 border-[#151e2b]"></div>
+          <div 
+            class="h-full bg-[#3b76ad] border-r-4 border-[#151e2b] transition-all duration-1000 ease-out"
+            :style="{ width: progressWidth }"
+          ></div>
         </div>
         
-        <p class="mt-2 text-sm font-bold text-gray-500">350 / 1000 XP</p>
+        <p class="mt-4 text-sm font-bold text-gray-600">
+          <span v-if="gamificationData.progress.prossima_soglia">
+            {{ gamificationData.xp_totali }} / {{ gamificationData.progress.prossima_soglia }} XP
+          </span>
+          <span v-else class="text-yellow-600">
+            Livello Massimo Raggiunto! ({{ gamificationData.xp_totali }} XP)
+          </span>
+        </p>
+
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-20">
