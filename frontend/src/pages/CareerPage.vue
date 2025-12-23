@@ -67,7 +67,20 @@ const closeDropdowns = () => {
 // --- LOGICA MODIFICA ---
 const openEditModal = (exam) => {
     // Clone oggetto per non modificare la view mentre edito
-    examToEdit.value = { ...exam, data: exam.data.substring(0, 10) } // YYYY-MM-DD
+    
+    // Fix Date Issue: Usa i metodi locali per ottenere la data corretta, evitando shift di fuso orario
+    const d = new Date(exam.data);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day}`;
+
+    // Convertiamo lode in boolean puro (perché dal db arriva 0 o 1) per il checkbox
+    examToEdit.value = { 
+        ...exam, 
+        data: formattedDate,
+        lode: !!exam.lode 
+    } 
     showEditModal.value = true
     closeDropdowns()
 }
