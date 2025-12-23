@@ -11,6 +11,7 @@ const settingsStore = useSettingsStore()
 const exams = ref([])
 const loading = ref(true)
 const errorMessage = ref('')
+const successMessage = ref('')
 
 // --- GESTIONE FILTRI ---
 const filters = ref({
@@ -19,21 +20,26 @@ const filters = ref({
   year: 'all'        // all, 2025, 2024...
 })
 
-// Generiamo gli anni accademici disponibili (Es. dal corrente indietro di 5 anni)
 const availableYears = ref([])
 const currentYear = new Date().getFullYear()
 for (let i = 0; i < 5; i++) {
   availableYears.value.push(currentYear - i)
 }
 
-// Funzione Formattazione Data
+// --- STATE PER MENU E MODALI ---
+const activeDropdownId = ref(null)
+const showEditModal = ref(false)
+const showDeleteModal = ref(false)
+const examToEdit = ref(null)
+const examToDeleteId = ref(null)
+
+// --- FORMATTAZIONE E COLORI ---
 const formatDate = (dateString) => {
   if (!dateString) return ''
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('it-IT').format(date)
 }
 
-// Funzione Colori Badge
 const getBadgeColor = (voto) => {
   const prefs = settingsStore.preferences;
   if (prefs.tema_voti === 'DEFAULT') {
@@ -44,6 +50,78 @@ const getBadgeColor = (voto) => {
   else return 'bg-yellow-400 text-black';
 }
 
+// --- GESTIONE MENU DROP DOWN ---
+const toggleDropdown = (id, event) => {
+    event.stopPropagation()
+    if (activeDropdownId.value === id) {
+        activeDropdownId.value = null
+    } else {
+        activeDropdownId.value = id
+    }
+}
+
+const closeDropdowns = () => {
+    activeDropdownId.value = null
+}
+
+// --- LOGICA MODIFICA ---
+const openEditModal = (exam) => {
+    // Clone oggetto per non modificare la view mentre edito
+    examToEdit.value = { ...exam, data: exam.data.substring(0, 10) } // YYYY-MM-DD
+    showEditModal.value = true
+    closeDropdowns()
+}
+
+const saveExam = async () => {
+    if (!examToEdit.value) return;
+    
+    // Validazione base
+    if (!examToEdit.value.nome || !examToEdit.value.voto || !examToEdit.value.cfu || !examToEdit.value.data) {
+        alert("Compila tutti i campi obbligatori");
+        return;
+    }
+
+    try {
+        await axios.put(`http://localhost:3000/api/exams/${examToEdit.value.id}`, examToEdit.value, { withCredentials: true });
+        
+        showEditModal.value = false;
+        successMessage.value = "Esame aggiornato con successo!";
+        setTimeout(() => successMessage.value = '', 3000);
+        
+        fetchExams(); // Ricarica lista per aggiornare XP totali e ordinamento
+    } catch (error) {
+        console.error("Errore aggiornamento:", error);
+        alert(error.response?.data?.message || "Errore durante l'aggiornamento");
+    }
+}
+
+// --- LOGICA ELIMINAZIONE ---
+const confirmDelete = (id) => {
+    examToDeleteId.value = id
+    showDeleteModal.value = true
+    closeDropdowns()
+}
+
+const deleteExam = async () => {
+    if (!examToDeleteId.value) return;
+
+    try {
+        await axios.delete(`http://localhost:3000/api/exams/${examToDeleteId.value}`, { withCredentials: true });
+        
+        // Rimuovi localmente
+        exams.value = exams.value.filter(e => e.id !== examToDeleteId.value);
+        
+        showDeleteModal.value = false;
+        examToDeleteId.value = null;
+        successMessage.value = "Esame eliminato!";
+        setTimeout(() => successMessage.value = '', 3000);
+    } catch (error) {
+        console.error("Errore eliminazione:", error);
+        alert("Errore durante l'eliminazione");
+    }
+}
+
+
 const navigateToInsert = () => {
   router.push('/career/insert')
 }
@@ -52,7 +130,6 @@ const navigateToInsert = () => {
 const fetchExams = async () => {
   loading.value = true
   try {
-    // Passiamo i filtri come query params
     const response = await axios.get('http://localhost:3000/api/exams', {
       withCredentials: true,
       params: {
@@ -78,14 +155,21 @@ watch(filters, () => {
   fetchExams()
 }, { deep: true })
 
+// Watcher: Se sto modificando e il voto scende sotto 30, tolgo la lode
+watch(() => examToEdit.value?.voto, (newVal) => {
+    if (newVal < 30 && examToEdit.value?.lode) {
+        examToEdit.value.lode = false;
+    }
+})
+
 onMounted(async () => {
   await settingsStore.fetchSettings()
-  fetchExams() // Prima chiamata
+  fetchExams()
 })
 </script>
 
 <template>
-  <div class="flex-grow flex flex-col bg-[#f8f9fa] font-sans">
+  <div class="flex-grow flex flex-col bg-[#f8f9fa] font-sans" @click="closeDropdowns">
     
     <NavBar />
 
@@ -110,6 +194,22 @@ onMounted(async () => {
             Inserisci Esame
           </button>
         </div>
+      </div>
+
+      <!-- Success Message Alert -->
+      <div v-if="successMessage" class="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg shadow-sm animate-fade-in-down">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm leading-5 font-medium text-green-800">
+                {{ successMessage }}
+              </p>
+            </div>
+          </div>
       </div>
 
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 mb-8 flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -166,10 +266,46 @@ onMounted(async () => {
         <div 
           v-for="exam in exams" 
           :key="exam.id"
-          class="bg-white border-[3px] border-black rounded-[2rem] p-6 relative hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+          class="bg-white border-[3px] border-black rounded-[2rem] p-6 relative hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
         >
-          <div class="flex justify-between items-start mb-6">
-            <h3 class="text-2xl font-bold text-black leading-tight w-2/3 break-words">
+          <!-- MENU DROPDOWN (Three Dots) -->
+          <div class="absolute top-5 right-5 z-10">
+              <button 
+                  @click="toggleDropdown(exam.id, $event)" 
+                  class="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition focus:outline-none bg-white/90 backdrop-blur-sm border border-gray-100 shadow-sm"
+              >
+                  <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                  </svg>
+              </button>
+
+              <div 
+                  v-if="activeDropdownId === exam.id" 
+                  class="absolute right-0 top-8 w-40 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden text-left animate-fade-in z-20"
+                  @click.stop
+              >
+                  <div class="py-1">
+                      <button 
+                          @click="openEditModal(exam)"
+                          class="w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-[#3b76ad] flex items-center gap-2"
+                      >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                          Modifica
+                      </button>
+
+                      <button 
+                          @click="confirmDelete(exam.id)"
+                          class="w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-gray-100"
+                      >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                          Elimina
+                      </button>
+                  </div>
+              </div>
+          </div>
+
+          <div class="flex justify-between items-start mb-6 pr-10">
+            <h3 class="text-2xl font-bold text-black leading-tight w-2/3 break-words pr-2">
               {{ exam.nome }}
             </h3>
             
@@ -198,6 +334,72 @@ onMounted(async () => {
           </div>
         </div>
 
+      </div>
+
+      <!-- MODALE MODIFICA -->
+      <div v-if="showEditModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" @click="showEditModal = false"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all">
+            <h3 class="text-2xl font-bold text-[#3b76ad] mb-6">Modifica Esame</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Nome Esame</label>
+                    <input v-model="examToEdit.nome" type="text" class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-[#3b76ad] outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Voto (18-30)</label>
+                        <input v-model.number="examToEdit.voto" type="number" min="18" max="30" class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-[#3b76ad] outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">CFU</label>
+                        <input v-model.number="examToEdit.cfu" type="number" min="1" class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-[#3b76ad] outline-none">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                     <input 
+                        type="checkbox" 
+                        id="lode" 
+                        v-model="examToEdit.lode" 
+                        :disabled="examToEdit.voto !== 30"
+                        class="w-5 h-5 text-[#3b76ad] rounded focus:ring-[#3b76ad] disabled:opacity-50 disabled:cursor-not-allowed"
+                     >
+                     <label for="lode" class="text-sm font-bold text-gray-700" :class="{'text-gray-400': examToEdit.voto !== 30}">Lode (Solo con 30)</label>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Data</label>
+                    <input v-model="examToEdit.data" type="date" class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-[#3b76ad] outline-none">
+                </div>
+            </div>
+
+            <div class="flex gap-3 justify-end mt-8">
+                <button @click="showEditModal = false" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-bold">Annulla</button>
+                <button @click="saveExam" class="px-4 py-2 bg-[#3b76ad] hover:bg-[#2c5c8f] text-white rounded-lg font-bold shadow-md">Salva Modifiche</button>
+            </div>
+        </div>
+      </div>
+
+      <!-- MODALE CONFERMA ELIMINAZIONE -->
+      <div v-if="showDeleteModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" @click="showDeleteModal = false"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Elimina Esame</h3>
+            <p class="text-sm text-gray-500 mb-6">Sei sicuro di voler eliminare questo esame? Questa azione è irreversibile.</p>
+            
+            <div class="flex gap-3 justify-center">
+                <button @click="showDeleteModal = false" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-bold">Annulla</button>
+                <button @click="deleteExam" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold shadow-md">Elimina</button>
+            </div>
+        </div>
       </div>
 
     </main>

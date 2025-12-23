@@ -1,6 +1,6 @@
 <script setup>
 import NavBar from '../components/NavBar.vue'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
@@ -12,11 +12,22 @@ const rows = ref([
   { nome: '', voto: '', lode: false, data: '', cfu: '' }
 ])
 
+// Watcher per resettare la lode se il voto non è 30
+watch(rows, (newRows) => {
+  newRows.forEach(row => {
+    if (row.voto != 30 && row.lode) {
+      row.lode = false
+    }
+  })
+}, { deep: true })
+
 const addRow = () => {
   if (rows.value.length < 5) {
     rows.value.push({ nome: '', voto: '', lode: false, data: '', cfu: '' })
   }
 }
+// ... (rest of the script)
+
 
 const removeRow = (index) => {
   if (rows.value.length > 1) {
@@ -147,8 +158,13 @@ const submitExams = async () => {
 
             <div class="col-span-2 flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2">
               <input v-model="row.voto" type="number" min="18" max="30" placeholder="30" class="w-full md:w-20 p-2 text-center border border-gray-300 rounded focus:border-[#3b76ad] focus:ring-1 focus:ring-[#3b76ad] outline-none text-sm md:text-base" />
-              <label class="flex items-center cursor-pointer text-xs font-bold text-gray-500 select-none">
-                <input type="checkbox" v-model="row.lode" class="mr-1 accent-[#3b76ad] w-4 h-4"> L
+              <label class="flex items-center cursor-pointer text-xs font-bold text-gray-500 select-none" :class="{'opacity-50 cursor-not-allowed': row.voto != 30}">
+                <input 
+                  type="checkbox" 
+                  v-model="row.lode" 
+                  :disabled="row.voto != 30"
+                  class="mr-1 accent-[#3b76ad] w-4 h-4 disabled:cursor-not-allowed"
+                > L
               </label>
             </div>
 

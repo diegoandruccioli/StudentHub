@@ -33,9 +33,9 @@ SET FOREIGN_KEY_CHECKS = 1;
 --
 
 INSERT INTO `utenti` (`id`, `email`, `password`, `nome`, `cognome`, `ruolo`, `xp_totali`, `created_at`) VALUES
-(1, 'reimici@studenthub.com', '$2b$10$2rbNJdYx5AMHHpZj.StUjOTU.TJn9wwEZATMUTlqKP2Gl5s5XUs5W', 'Rei', 'Mici', '0', 1146, '2025-12-23 09:02:23'),
-(2, 'diegoandruccioli@studenthub.com', '$2b$10$Y/obgEJCf5SkKBp04gaTzu5u9RX/37uYyp.GmWeTReBBLLepnu4by', 'Diego', 'Andruccioli', '0', 1732, '2025-12-23 09:02:47'),
-(3, 'giovannimorelli@studenthub.com', '$2b$10$bvhAk.X0gnMSbWVvy41wweyAY0qz0j/A0SSUKkF42p.n5Kf1AQuZO', 'Giovanni', 'Morelli', '0', 1412, '2025-12-23 09:03:04'),
+(1, 'reimici@studenthub.com', '$2b$10$2rbNJdYx5AMHHpZj.StUjOTU.TJn9wwEZATMUTlqKP2Gl5s5XUs5W', 'Rei', 'Mici', '0', 1796, '2025-12-23 09:02:23'),
+(2, 'diegoandruccioli@studenthub.com', '$2b$10$Y/obgEJCf5SkKBp04gaTzu5u9RX/37uYyp.GmWeTReBBLLepnu4by', 'Diego', 'Andruccioli', '0', 2682, '2025-12-23 09:02:47'),
+(3, 'giovannimorelli@studenthub.com', '$2b$10$bvhAk.X0gnMSbWVvy41wweyAY0qz0j/A0SSUKkF42p.n5Kf1AQuZO', 'Giovanni', 'Morelli', '0', 2362, '2025-12-23 09:03:04'),
 (4, 'superadmin@studenthub.com', '$2b$10$9Rym/JIL9X.GybLomU7YvOhZLSu.qft9.zQBpk70TOY8Dfphu0ZYG', 'SuperAdmin', 'SuperAdmin', '2', 0, '2025-12-23 09:03:46'),
 (5, 'admin@studenthub.com', '$2b$10$coQ56ySY1TjNTYhfU6oc3.i9fqkBtRBD5.41nJeUe659P22WXY4yC', 'Admin', 'Admin', '1', 0, '2025-12-23 09:04:00');
 
@@ -119,9 +119,14 @@ INSERT INTO `esami` (`id`, `id_utente`, `nome`, `voto`, `lode`, `cfu`, `data`, `
 --
 
 INSERT INTO `obiettivi_sbloccati` (`id_utente`, `id_obiettivo`, `data_conseguimento`) VALUES
+(1, 1, '2025-12-23'),
+(1, 3, '2025-12-23'),
 (2, 1, '2025-12-23'),
 (2, 2, '2025-12-23'),
-(2, 3, '2025-12-23');
+(2, 3, '2025-12-23'),
+(3, 1, '2025-12-23'),
+(3, 2, '2025-12-23'),
+(3, 3, '2025-12-23');
 
 COMMIT;
 

@@ -8,6 +8,7 @@ router.use(protect);
 
 router.get('/', examController.getExams);
 router.post('/', examController.addExam);
+router.put('/:id', examController.updateExam);
 router.delete('/:id', examController.deleteExam);
 
 export default router;

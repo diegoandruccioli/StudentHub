@@ -35,7 +35,7 @@ export const getExams = async (req: Request, res: Response) => {
     }
 };
 
-import { checkBadges } from './gamificationController';
+import { syncBadges } from './gamificationController';
 
 // POST: Aggiungi esame (max 5 esami)
 export const addExam = async (req: Request, res: Response) => {
@@ -83,7 +83,7 @@ export const addExam = async (req: Request, res: Response) => {
         );
 
         // --- GAMIFICATION CHECK ---
-        const newBadges = await checkBadges(req.user.id, connection);
+        const { newBadges } = await syncBadges(req.user.id, connection);
 
         await connection.commit();
 
@@ -99,6 +99,73 @@ export const addExam = async (req: Request, res: Response) => {
         console.error(error);
         const msg = error instanceof Error ? error.message : 'Errore aggiunta esame';
         res.status(500).json({ message: msg });
+    } finally {
+        connection.release();
+    }
+};
+
+// PUT: Aggiorna esame
+export const updateExam = async (req: Request, res: Response) => {
+    const connection = await pool.getConnection();
+    try {
+        if (!req.user) return res.status(401).json({ message: 'Utente non autenticato' });
+
+        const { id } = req.params;
+        const { nome, voto, lode, cfu, data } = req.body;
+
+        if (!nome || !voto || !cfu || !data) {
+            return res.status(400).json({ message: 'Dati mancanti' });
+        }
+
+        // 1. Recupera esame vecchio per calcolare differenza XP
+        const [oldExams] = await connection.query<RowDataPacket[]>('SELECT * FROM esami WHERE id = ? AND id_utente = ?', [id, req.user.id]);
+        
+        if (oldExams.length === 0) {
+            return res.status(404).json({ message: 'Esame non trovato o non autorizzato' });
+        }
+        const oldExam = oldExams[0];
+        const oldXp = oldExam.xp_guadagnati;
+
+        // 2. Calcola nuovo XP
+        let newXp = voto * cfu;
+        if (lode) newXp += 50;
+
+        const xpDifference = newXp - oldXp;
+
+        await connection.beginTransaction();
+
+        // 3. Aggiorna Esame
+        await connection.query(
+            'UPDATE esami SET nome = ?, voto = ?, lode = ?, cfu = ?, data = ?, xp_guadagnati = ? WHERE id = ?',
+            [nome, voto, lode || false, cfu, data, newXp, id]
+        );
+
+        // 4. Aggiorna XP Utente
+        if (xpDifference !== 0) {
+            // Nota: Se xpDifference è negativo, stiamo sottraendo.
+            // Se aggiornando esce fuori che l'utente va sotto zero totali (improbabile), mysql gestisce i signed int.
+            await connection.query(
+                'UPDATE utenti SET xp_totali = xp_totali + ? WHERE id = ?',
+                [xpDifference, req.user.id]
+            );
+        }
+
+        // 5. Check Badge (Sync completo: assegna e revoca)
+        const { newBadges, revokedBadgeIds } = await syncBadges(req.user.id, connection);
+
+        await connection.commit();
+
+        res.json({ 
+            message: 'Esame aggiornato', 
+            nuovi_badge: newBadges,
+            badge_revocati: revokedBadgeIds,
+            xp_difference: xpDifference
+        });
+
+    } catch (error) {
+        await connection.rollback();
+        console.error(error);
+        res.status(500).json({ message: 'Errore aggiornamento' });
     } finally {
         connection.release();
     }
@@ -123,6 +190,10 @@ export const deleteExam = async (req: Request, res: Response) => {
         await connection.beginTransaction();
         await connection.query('DELETE FROM esami WHERE id = ?', [id]);
         await connection.query('UPDATE utenti SET xp_totali = xp_totali - ? WHERE id = ?', [xpDaRimuovere, req.user.id]);
+        
+        // SYNC BADGES: Eliminando un esame potrei perdere badge
+        await syncBadges(req.user.id, connection);
+        
         await connection.commit();
         
         res.json({ message: 'Esame eliminato, XP ricalcolati' });
