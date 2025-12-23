@@ -21,7 +21,6 @@ const gamificationData = ref({
   }
 })
 
-// Calcoliamo la percentuale per lo stile CSS (con un minimo per estetica)
 const progressWidth = computed(() => {
   return `${Math.max(5, gamificationData.value.progress.percentuale)}%`
 })
