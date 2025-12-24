@@ -141,7 +141,7 @@ const filteredUsers = computed(() => {
 // --- FUNZIONI DI UTILITÀ VISIVA ---
 const getRoleBadge = (role) => {
   switch(role) {
-    case '2': return { label: 'Super Admin', class: 'bg-purple-100 text-purple-700 border-purple-200' }
+    case '2': return { label: 'Super Admin', class: 'bg-green-100 text-green-700 border-green-200' }
     case '1': return { label: 'Admin', class: 'bg-blue-100 text-blue-700 border-blue-200' }
     default: return { label: 'Studente', class: 'bg-gray-100 text-gray-600 border-gray-200' }
   }
@@ -240,7 +240,7 @@ onMounted(async () => {
           </div>
 
           <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4 hover:shadow-md transition">
-            <div class="p-3 bg-green-50 rounded-full text-green-600">
+            <div class="p-3 bg-purple-50 rounded-full text-purple-600">
               <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg>
             </div>
             <div>
@@ -250,7 +250,7 @@ onMounted(async () => {
           </div>
 
           <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4 hover:shadow-md transition">
-            <div class="p-3 bg-purple-50 rounded-full text-purple-600">
+            <div class="p-3 bg-green-50 rounded-full text-green-600">
               <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
             </div>
             <div>
