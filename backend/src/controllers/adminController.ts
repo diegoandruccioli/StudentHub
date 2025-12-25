@@ -6,8 +6,11 @@ import { adminService } from '../services/adminService';
 // Lista utenti
 export const getAllUsers = async (req: Request, res: Response): Promise<void> => {
     try {
-        const users = await adminService.getAllUsers();
-        res.status(200).json(users);
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 20;
+
+        const result = await adminService.getAllUsers(page, limit);
+        res.status(200).json(result);
     } catch (error) {
         console.error('Errore getAllUsers:', error);
         res.status(500).json({ message: 'Errore nel recupero della lista utenti' });

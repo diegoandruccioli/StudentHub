@@ -5,14 +5,44 @@ import bcrypt from 'bcrypt';
 
 export const adminService = {
     // Lista utenti
-    async getAllUsers() {
+    // Lista utenti (Paginated)
+    async getAllUsers(page: number = 1, limit: number = 20) {
+        const offset = (page - 1) * limit;
+
+        // 1. Conta totale utenti e statistica per ruoli
+        const countQuery = `
+            SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN ruolo = '0' THEN 1 ELSE 0 END) as students,
+                SUM(CASE WHEN ruolo IN ('1', '2') THEN 1 ELSE 0 END) as admins
+            FROM utenti
+        `;
+        const [countResult] = await pool.query<RowDataPacket[]>(countQuery);
+        
+        const totalItems = countResult[0].total;
+        const totalStudents = parseInt(countResult[0].students) || 0;
+        const totalAdmins = parseInt(countResult[0].admins) || 0;
+
+        // 2. Recupera utenti paginati
         const query = `
             SELECT id, nome, cognome, ruolo, xp_totali, created_at 
             FROM utenti 
             ORDER BY created_at DESC
+            LIMIT ? OFFSET ?
         `;
-        const [users] = await pool.query<RowDataPacket[]>(query);
-        return users;
+        const [users] = await pool.query<RowDataPacket[]>(query, [limit, offset]);
+
+        return {
+            data: users,
+            meta: {
+                totalItems,
+                totalStudents,
+                totalAdmins,
+                totalPages: Math.ceil(totalItems / limit),
+                currentPage: page,
+                itemsPerPage: limit
+            }
+        };
     },
 
     // Statistiche amministrative

@@ -17,6 +17,14 @@ const actionLoading = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
 const searchQuery = ref('')
+const totalUsersCount = ref(0) 
+const totalStudentsCount = ref(0)
+const totalAdminsCount = ref(0)
+
+// --- PAGINATION STATE ---
+const currentPage = ref(1)
+const totalPages = ref(1)
+const itemsPerPage = ref(20)
 
 // --- MODAL STATE ---
 const showModal = ref(false)
@@ -43,75 +51,52 @@ const confirmAction = async () => {
     closeModal()
 }
 
-// --- AZIONI SUPER ADMIN ---
-const handleUpdateRole = async (user) => {
-    // Se è Studente (0) diventa Admin (1), se Admin (1) diventa Studente (0)
-    const newRole = user.ruolo === '0' ? '1' : '0'
-    const actionName = newRole === '1' ? 'promozione' : 'retrocessione'
-
-    // Sostituto di confirm()
-    openConfirmModal(
-        `Conferma ${actionName}`,
-        `Sei sicuro di voler procedere con la ${actionName} dell'utente?`,
-        async () => {
-             actionLoading.value = true
-             try {
-                await api.put(`/admin/users/${user.id}/role`, 
-                    { nuovo_ruolo: newRole }
-                )
-                
-                // Aggiorna lista locale
-                const userIndex = users.value.findIndex(u => u.id === user.id)
-                if (userIndex !== -1) {
-                    users.value[userIndex].ruolo = newRole
-                }
-                successMessage.value = `Ruolo aggiornato con successo.`
-                setTimeout(() => successMessage.value = '', 3000)
-
-            } catch (error) {
-                console.error("Errore cambio ruolo:", error)
-                errorMessage.value = error.response?.data?.message || "Errore durante l'operazione"
-                setTimeout(() => errorMessage.value = '', 5000)
-            } finally {
-                actionLoading.value = false
-            }
+// --- DATA FETCHING ---
+const fetchUsers = async (page = 1) => {
+    loading.value = true
+    try {
+        const response = await api.get(`/admin/users?page=${page}&limit=${itemsPerPage.value}`)
+        
+        // Risposta paginata: { data: [], meta: { ... } }
+        users.value = response.data.data
+        
+        // Metadata globali
+        totalUsersCount.value = response.data.meta.totalItems
+        totalStudentsCount.value = response.data.meta.totalStudents
+        totalAdminsCount.value = response.data.meta.totalAdmins
+        
+        totalPages.value = response.data.meta.totalPages
+        currentPage.value = response.data.meta.currentPage
+        
+    } catch (error) {
+        console.error("Errore admin:", error)
+        errorMessage.value = "Accesso Negato o Errore Server."
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+            setTimeout(() => router.push('/home'), 2000)
         }
-    )
+    } finally {
+        loading.value = false
+    }
 }
 
-const handleDeleteUser = async (userId) => {
-    openConfirmModal(
-        "Elimina Account",
-        "Sei sicuro di voler ELIMINARE definitivamente questo account Admin? L'azione è irreversibile.",
-        async () => {
-             actionLoading.value = true
-             try {
-                await api.delete(`/admin/users/${userId}`)
-                
-                // Rimuovi dalla lista locale
-                users.value = users.value.filter(u => u.id !== userId)
-                successMessage.value = "Account eliminato correttamente."
-                setTimeout(() => successMessage.value = '', 3000)
-
-            } catch (error) {
-                console.error("Errore cancellazione:", error)
-                errorMessage.value = error.response?.data?.message || "Errore durante Cancellazione"
-                setTimeout(() => errorMessage.value = '', 5000)
-            } finally {
-                actionLoading.value = false
-            }
-        }
-    )
+const handlePageChange = (newPage) => {
+    if (newPage > 0 && newPage <= totalPages.value) {
+        fetchUsers(newPage)
+    }
 }
+
+// ... action handlers ...
 
 // --- COMPUTED PROPERTIES PER LE STATISTICHE ---
-// Calcoliamo i totali in tempo reale basandoci sui dati scaricati
-const totalUsers = computed(() => users.value.length)
-const totalAdmins = computed(() => users.value.filter(u => u.ruolo === '1' || u.ruolo === '2').length)
-const totalStudents = computed(() => users.value.filter(u => u.ruolo === '0').length)
+// Ora usiamo i dati reali dal backend, indipendentemente dalla pagina corrente
+const totalUsers = computed(() => totalUsersCount.value) 
+const totalStudents = computed(() => totalStudentsCount.value)
+const totalAdmins = computed(() => totalAdminsCount.value)
 
 // --- FILTRO RICERCA ---
-// Permette di filtrare la tabella per nome, cognome o email
+// La ricerca lato client funziona solo sulla pagina corrente.
+// Se si vuole ricerca globale, bisogna implementarla lato backend (es. /api/admin/users?search=...).
+// Manteniamo il filtro client-side per ora sulla pagina corrente.
 const filteredUsers = computed(() => {
   if (!searchQuery.value) return users.value
   const query = searchQuery.value.toLowerCase()
@@ -123,22 +108,8 @@ const filteredUsers = computed(() => {
 })
 
 // --- CARICAMENTO DATI ---
-onMounted(async () => {
-  try {
-    // Chiamata all'API Backend che abbiamo verificato esistere
-    const response = await api.get('/admin/users')
-    users.value = response.data
-  } catch (error) {
-    console.error("Errore admin:", error)
-    errorMessage.value = "Accesso Negato o Errore Server."
-    
-    // Redirect se non autorizzato (token scaduto o ruolo insufficiente)
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-      setTimeout(() => router.push('/home'), 2000)
-    }
-  } finally {
-    loading.value = false
-  }
+onMounted(() => {
+    fetchUsers(1)
 })
 </script>
 
@@ -234,8 +205,11 @@ onMounted(async () => {
             :users="filteredUsers" 
             :is-admin-super="isAdminSuper" 
             :search-query="searchQuery"
+            :current-page="currentPage"
+            :total-pages="totalPages"
             @update-role="handleUpdateRole"
             @delete-user="handleDeleteUser"
+            @change-page="handlePageChange"
         />
         
         <p class="text-xs text-gray-400 mt-4 text-right">
