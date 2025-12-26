@@ -41,13 +41,13 @@ Il sistema prevede ruoli amministrativi con privilegi elevati:
 
 * **Admin**:
     * Accesso alla lista completa degli utenti registrati.
+    * **Gestione scalabile**: Sistema di paginazione server-side per gestire migliaia di utenti senza rallentamenti.
     * Visualizzazione di statistiche globali della piattaforma (es. numero totale di esami registrati).
     * Accesso a una classifica globale non anonimizzata.
 
 * **SuperAdmin**:
     * Comprende tutte le funzionalita dell'Admin.
     * Gestione dei ruoli utente (promozione e retrocessione).
-    * Creazione di nuovi account amministrativi.
     * Eliminazione di account amministrativi.
 
 ---
@@ -57,6 +57,7 @@ Il sistema prevede ruoli amministrativi con privilegi elevati:
 ### Frontend
 Il client e sviluppato utilizzando le seguenti tecnologie:
 * **Vue.js** (v3.5.24): Framework progressivo per interfacce utente.
+* **Pinia** (v3.0.4): State Management ufficiale e modulare per Vue.js.
 * **Vite** (v7.2.4): Build tool di nuova generazione per frontend rapidi.
 * **Tailwind CSS** (v4.1.18): Framework CSS utility-first per lo styling.
 * **JavaScript (ES6+)**: Logica applicativa.
@@ -183,6 +184,8 @@ Requisiti: Docker Desktop installato.
    # Modificare .env con le credenziali del proprio database MySQL locale
    npm run dev
    ```
+   
+   *Nota: Le regole per l'assegnazione dei badge sono configurabili nel file `backend/src/config/gamificationRules.ts`, permettendo di estendere il sistema di gamification senza modificare la logica core.*
 
 3. **Setup Frontend**:
    ```bash
@@ -222,7 +225,7 @@ Il backend espone le seguenti API RESTful.
 * `PUT /api/settings`: Aggiornamento preferenze.
 
 ### ADMIN
-* `GET /api/admin/users`: Lista completa utenti.
+* `GET /api/admin/users?page=N&limit=N`: Lista utenti paginata (default 20 per pagina). Restituisce anche statistiche globali.
 * `PUT /api/admin/users/:id/role`: Modifica ruolo utente.
 * `DELETE /api/admin/users/:id`: Eliminazione admin.
 

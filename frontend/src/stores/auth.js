@@ -63,8 +63,8 @@ export const useAuthStore = defineStore("auth", {
       } finally {
         this.user = null;
         localStorage.removeItem("user");
-        // Forza il ricaricamento o redirect
-        window.location.href = "/login";
+        // Non forziamo il redirect qui con window.location,
+        // lasciamo che sia il componente a fare router.push('/')
       }
     },
   },

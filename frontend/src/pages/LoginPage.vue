@@ -44,7 +44,16 @@ const handleLogin = async () => {
       </div>
     </header>
 
-    <main class="flex-grow flex items-center justify-center px-4">
+    <main class="flex-grow flex flex-col items-center justify-center px-4">
+      
+      <div class="mb-6 w-full max-w-md">
+        <router-link to="/" class="inline-flex items-center gap-2 text-gray-600 hover:text-[#3b76ad] transition font-bold text-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Torna alla Home
+        </router-link>
+      </div>
       
       <div class="bg-[#151e2b] text-white w-full max-w-md p-8 rounded-3xl shadow-2xl">
         

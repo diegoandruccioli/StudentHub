@@ -122,8 +122,7 @@ onMounted(() => {
       
       <div class="mb-8">
         <nav class="text-sm text-gray-500 mb-2 font-medium">
-          <router-link to="/home" class="hover:text-primary">Home</router-link> 
-          <span class="mx-2">></span> 
+          <!-- Admin non ha Home, quindi solo Dashboard -->
           <span class="text-primary font-bold">Dashboard Admin</span>
         </nav>
         <div class="flex flex-col md:flex-row justify-between items-end border-b border-gray-300 pb-4 gap-4">

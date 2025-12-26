@@ -100,6 +100,8 @@ const submitExams = async () => {
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <nav class="text-sm text-gray-500 mb-2 font-medium">
+            <router-link to="/home" class="hover:text-primary">Home</router-link> 
+            <span class="mx-2">></span>
             <router-link to="/career" class="hover:text-primary">Carriera</router-link> 
             <span class="mx-2">></span>
             <span class="text-primary font-bold">Inserisci Esame</span>
