@@ -155,6 +155,8 @@ StudentHub/
 
 E possibile avviare il progetto tramite Docker (consigliato per compatibilita universale) o manualmente clonando la repository.
 
+**Repository GitHub**: [https://github.com/diegoandruccioli/StudentHub.git](https://github.com/diegoandruccioli/StudentHub.git)
+
 ### Metodo 1: Docker (Windows, Mac, Linux)
 Requisiti: Docker Desktop installato.
 
@@ -254,7 +256,16 @@ L'utente ha inoltre la possibilita di personalizzare la visualizzazione dei voti
 
 ## Documentazione e Mockup
 
-Di seguito sono riportati i link ai mockup grafici del progetto, che illustrano l'evoluzione dal concept iniziale al prodotto finale.
+La progettazione dell'interfaccia ha seguito un approccio *Mobile-First*, con un focus sulla chiarezza dei dati accademici.
+
+### Wireframe e Flusso Utente
+Abbiamo progettato le seguenti viste principali (disponibili nei link in basso):
+1.  **Login/Register**: Design minimale con validazione in tempo reale e feedback visivo immediato.
+2.  **Dashboard Studente**: Visualizzazione a "Card" per i dati critici (Media, XP) per una lettura rapida.
+3.  **Carriera**: Tabella responsive con filtri dinamici per gestire un alto numero di esami.
+4.  **Gamification**: Barre di progresso animate e Badge colorati per incentivare l'uso della piattaforma.
+
+### Risorse Grafiche
 
 * **Mockup Iniziale (Concept)**: [Visualizza su Canva](https://www.canva.com/design/DAG5nGBXND4/Boom0zBj1rBkACGib-mlAg/edit?utm_content=DAG5nGBXND4&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 * **Mockup Finale (Prodotto)**: [Visualizza su Canva](https://www.canva.com/design/DAG6QVv9ajQ/6sjTh2q4dOybFtLEprm3mQ/edit?utm_content=DAG6QVv9ajQ&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
