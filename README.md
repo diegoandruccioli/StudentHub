@@ -60,7 +60,7 @@ Il client e sviluppato utilizzando le seguenti tecnologie:
 * **Pinia** (v3.0.4): State Management ufficiale e modulare per Vue.js.
 * **Vite** (v7.2.4): Build tool di nuova generazione per frontend rapidi.
 * **Tailwind CSS** (v4.1.18): Framework CSS utility-first per lo styling.
-* **JavaScript (ES6+)**: Logica applicativa.
+* **TypeScript** (v5.9.3): Logica applicativa fortemente tipizzata per garantire sicurezza e scalabilità.
 
 ### Backend
 Il server e sviluppato utilizzando:
