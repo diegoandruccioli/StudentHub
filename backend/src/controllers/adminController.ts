@@ -99,31 +99,3 @@ export const deleteAdminAccount = async (req: Request, res: Response): Promise<v
         }
     }
 };
-
-// Registra un nuovo account Admin
-export const registerAdmin = async (req: Request, res: Response): Promise<void> => {
-    const { nome, cognome, email, password } = req.body;
-
-    if (!nome || !cognome || !email || !password) {
-        res.status(400).json({ message: 'Tutti i campi sono obbligatori.' });
-        return;
-    }
-
-    try {
-        const result = await adminService.registerAdmin({ nome, cognome, email, password });
-        
-        res.status(201).json({ 
-            message: 'Nuovo Admin creato con successo.',
-            id: result.id,
-            email: result.email
-        });
-
-    } catch (error: any) {
-        console.error('Errore registerAdmin:', error);
-        if (error.message === 'Email già registrata.') {
-            res.status(400).json({ message: error.message });
-        } else {
-            res.status(500).json({ message: 'Errore server durante la creazione Admin.' });
-        }
-    }
-};

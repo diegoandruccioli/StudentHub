@@ -121,24 +121,5 @@ export const adminService = {
         await pool.query('DELETE FROM utenti WHERE id = ?', [targetUserId]);
     },
 
-    // Registra Admin
-    async registerAdmin(adminData: any) {
-        const { nome, cognome, email, password } = adminData;
 
-        const [existing] = await pool.query<RowDataPacket[]>('SELECT id FROM utenti WHERE email = ?', [email]);
-        if (existing.length > 0) {
-            throw new Error('Email già registrata.');
-        }
-
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-        
-        const insertQuery = `
-            INSERT INTO utenti (nome, cognome, email, password, ruolo) 
-            VALUES (?, ?, ?, ?, '${UserRole.ADMIN}')
-        `;
-        const [result] = await pool.query<ResultSetHeader>(insertQuery, [nome, cognome, email, hashedPassword]);
-        
-        return { id: result.insertId, email };
-    }
 };

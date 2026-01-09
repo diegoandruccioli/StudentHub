@@ -6,8 +6,7 @@ import {
     updateUserRole,
     getAdminStats,
     getGlobalRanking,
-    deleteAdminAccount,
-    registerAdmin
+    deleteAdminAccount
 } from '../controllers/adminController';
 
 const router = Router();
@@ -21,7 +20,7 @@ router.get('/stats/ranking', protectAdmin, getGlobalRanking);       // Classific
 
 // --- Area SuperAdmin (Gestione Poteri e Utenze Admin) ---
 router.put('/users/:id/role', protectSuperAdmin, updateUserRole);   // Cambiare ruoli
-router.post('/register', protectSuperAdmin, registerAdmin);         // Creare Admin
+
 router.delete('/users/:id', protectSuperAdmin, deleteAdminAccount); // Eliminare Admin
 
 export default router;
