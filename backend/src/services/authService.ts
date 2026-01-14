@@ -26,11 +26,10 @@ export const authService = {
 
         const newUserId = result.insertId;
 
-        // Inizializza impostazioni di default
+        // Inizializza impostazioni di default (IGNORE se esiste già)
         await pool.query(`
-            INSERT INTO impostazioni_utente (id_utente) VALUES (?)
+            INSERT IGNORE INTO impostazioni_utente (id_utente) VALUES (?)
         `, [newUserId]);
-
 
         const user: User = {
             id: newUserId,

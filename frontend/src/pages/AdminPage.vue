@@ -153,7 +153,7 @@ onMounted(() => {
           <!-- Admin non ha Home, quindi solo Dashboard -->
           <span class="text-primary font-bold">Dashboard Admin</span>
         </nav>
-        <div class="flex flex-col md:flex-row justify-between items-end border-b border-gray-300 pb-4 gap-4">
+        <div class="flex flex-col md:flex-row justify-between items-end border-b pb-4 gap-4">
           <div>
             <h1 class="text-4xl font-bold text-secondary">Gestione Utenti</h1>
             <p class="text-gray-600 mt-1">Pannello di controllo per la gestione degli iscritti alla piattaforma.</p>
@@ -184,33 +184,33 @@ onMounted(() => {
       
         <!-- Statistiche Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4 hover:shadow-md transition">
-            <div class="p-3 bg-blue-50 rounded-full text-primary">
-              <IconUsersGroup class="w-8 h-8" />
+          <div class="bg-white border-2 border-black rounded-2xl p-6 flex items-center gap-6 shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+            <div class="p-4 bg-blue-50 rounded-full">
+              <IconUsersGroup class="w-10 h-10 text-[#3b76ad]" />
             </div>
             <div>
               <p class="text-sm text-gray-500 font-bold uppercase tracking-wider">Utenti Totali</p>
-              <p class="text-3xl font-bold text-gray-800">{{ totalUsers }}</p>
+              <p class="text-4xl font-extrabold text-[#151e2b]">{{ totalUsers }}</p>
             </div>
           </div>
 
-          <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4 hover:shadow-md transition">
-            <div class="p-3 bg-purple-50 rounded-full text-purple-600">
-              <IconAcademicCap class="w-8 h-8" />
+          <div class="bg-white border-2 border-black rounded-2xl p-6 flex items-center gap-6 shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+            <div class="p-4 bg-purple-50 rounded-full">
+              <IconAcademicCap class="w-10 h-10 text-purple-600" />
             </div>
             <div>
               <p class="text-sm text-gray-500 font-bold uppercase tracking-wider">Studenti</p>
-              <p class="text-3xl font-bold text-gray-800">{{ totalStudents }}</p>
+              <p class="text-4xl font-extrabold text-[#151e2b]">{{ totalStudents }}</p>
             </div>
           </div>
 
-          <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4 hover:shadow-md transition">
-            <div class="p-3 bg-green-50 rounded-full text-green-600">
-              <IconShieldCheck class="w-8 h-8" />
+          <div class="bg-white border-2 border-black rounded-2xl p-6 flex items-center gap-6 shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+            <div class="p-4 bg-green-50 rounded-full">
+              <IconShieldCheck class="w-10 h-10 text-green-600" />
             </div>
             <div>
               <p class="text-sm text-gray-500 font-bold uppercase tracking-wider">Admin</p>
-              <p class="text-3xl font-bold text-gray-800">{{ totalAdmins }}</p>
+              <p class="text-4xl font-extrabold text-[#151e2b]">{{ totalAdmins }}</p>
             </div>
           </div>
         </div>
