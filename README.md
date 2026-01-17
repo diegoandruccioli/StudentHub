@@ -3,7 +3,7 @@
 > **Nota Importante**: Questo file funge da copertina per il progetto. 
 > Per la **documentazione completa**, le **specifiche tecniche dettagliate**, l'analisi architettonica e la relazione richiesta dai professori, si prega di fare riferimento al file principale:
 > 
-> 📄 **[repost_studenthub.pdf](./repost_studenthub.pdf)**
+> 📄 **[report_studenthub.pdf](./report_studenthub.pdf)**
 
 ---
 
