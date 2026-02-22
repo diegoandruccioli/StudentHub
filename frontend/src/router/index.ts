@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from "vue-router";
 import type { RouteRecordRaw } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 
-// Import delle pagine
 import LandingPage from "../pages/LandingPage.vue";
 import LoginPage from "../pages/LoginPage.vue";
 import RegisterPage from "../pages/RegisterPage.vue";
@@ -13,8 +12,6 @@ import StatsPage from "../pages/StatsPage.vue";
 import SettingsPage from "../pages/SettingsPage.vue";
 import NotFound from "../pages/NotFound.vue";
 import ObjectivesPage from "../pages/ObjectivesPage.vue";
-
-// Import delle pagine pubbliche (Nuovi file)
 import AboutPage from "../pages/AboutPage.vue";
 import ContactPage from "../pages/ContactPage.vue";
 import PrivacyPage from "../pages/PrivacyPage.vue";
@@ -23,7 +20,6 @@ import TermsPage from "../pages/TermsPage.vue";
 const AdminPage = () => import("../pages/AdminPage.vue");
 
 const routes: Array<RouteRecordRaw> = [
-
   {
     path: "/",
     name: "Landing",
@@ -42,7 +38,6 @@ const routes: Array<RouteRecordRaw> = [
     component: RegisterPage,
     meta: { guest: true },
   },
-
 
   {
     path: "/home",
@@ -84,23 +79,13 @@ const routes: Array<RouteRecordRaw> = [
     path: "/admin",
     name: "Admin",
     component: AdminPage,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, requiresAdmin: true },
   },
-
 
   { path: "/about", name: "About", component: AboutPage },
   { path: "/contact", name: "Contact", component: ContactPage },
   { path: "/privacy", name: "Privacy", component: PrivacyPage },
   { path: "/terms", name: "Terms", component: TermsPage },
-
-  //ADMIN ROUTE CON CHECK RUOLO
-  {
-    path: "/admin",
-    name: "Admin",
-    component: AdminPage,
-    meta: { requiresAuth: true, requiresAdmin: true }, // <-- NUOVO CHECK RUOLO
-  },
-
 
   {
     path: "/:pathMatch(.*)*",
@@ -108,6 +93,7 @@ const routes: Array<RouteRecordRaw> = [
     component: NotFound,
   },
 ];
+
 const router = createRouter({
   history: createWebHistory(),
   routes,
@@ -118,31 +104,22 @@ const router = createRouter({
 router.beforeEach((to, _from, next) => {
   const authStore = useAuthStore();
   const isAuthenticated = authStore.isAuthenticated;
-  const userRole = authStore.user?.ruolo; // '0', '1', '2'
-
+  const userRole = authStore.user?.ruolo;
 
   if (to.meta.requiresAuth && !isAuthenticated) {
     return next("/login");
   }
 
-
-  else if (to.meta.guest && isAuthenticated) {
-    // Se è Admin (1) o SuperAdmin (2), vai alla dashboard admin
+  if (to.meta.guest && isAuthenticated) {
     if (userRole === "1" || userRole === "2") {
       return next("/admin");
     }
-    // Altrimenti (Studente), vai alla home classica
     return next("/home");
   }
 
-
-  if (to.meta.requiresAdmin && isAuthenticated) {
-    // Se uno studente ('0') prova ad entrare in /admin -> Bloccalo
-    if (userRole === "0") {
-      return next("404"); // O altra pagina di errore/accesso negato
-    }
+  if (to.meta.requiresAdmin && isAuthenticated && userRole === "0") {
+    return next({ name: "NotFound" });
   }
-
 
   if (isAuthenticated && (userRole === "1" || userRole === "2")) {
     const studentRoutes = [
@@ -157,7 +134,6 @@ router.beforeEach((to, _from, next) => {
       return next("/admin");
     }
   }
-
 
   next();
 });

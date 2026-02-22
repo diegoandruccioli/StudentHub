@@ -8,7 +8,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction): 
 
     if (token) {
         try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
+            const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET as string) as JwtPayload;
             
             // RowDataPacket[] è il tipo di ritorno standard per le query SELECT di mysql2
             const [users] = await pool.query<RowDataPacket[]>('SELECT id, nome, cognome, email, ruolo, xp_totali FROM utenti WHERE id = ?', [decoded.id]);
