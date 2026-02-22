@@ -5,11 +5,9 @@ import { ref, onMounted, watch } from 'vue'
 import api from '../api/axios'
 import { useSettingsStore } from '../stores/settings'
 import type { Exam } from '../types'
-import IconDotsHorizontal from '../components/icons/IconDotsHorizontal.vue'
-import IconPencil from '../components/icons/IconPencil.vue'
 import IconTrash from '../components/icons/IconTrash.vue'
-import IconCalendar from '../components/icons/IconCalendar.vue'
 import IconCheckCircle from '../components/icons/IconCheckCircle.vue'
+import ExamTable from '../components/ExamTable.vue'
 
 const router = useRouter()
 const settingsStore = useSettingsStore()
@@ -33,42 +31,11 @@ for (let i = 0; i < 5; i++) {
 }
 
 
-const activeDropdownId = ref<number | string | null>(null)
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const examToEdit = ref<Exam | null>(null)
 const examToDeleteId = ref<number | string | null>(null)
 
-
-const formatDate = (dateString: string) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return new Intl.DateTimeFormat('it-IT').format(date)
-}
-
-const getBadgeColor = (voto: number) => {
-  const prefs = settingsStore.preferences;
-  if (prefs.tema_voti === 'DEFAULT') {
-    return 'bg-primary text-white'; 
-  }
-  if (voto < prefs.rgb_soglia_bassa) return 'bg-red-600 text-white';
-  else if (voto >= prefs.rgb_soglia_alta) return 'bg-green-700 text-white';
-  else return 'bg-yellow-400 text-black';
-}
-
-// --- GESTIONE MENU DROP DOWN ---
-const toggleDropdown = (id: number | string, event: Event) => {
-    event.stopPropagation()
-    if (activeDropdownId.value === id) {
-        activeDropdownId.value = null
-    } else {
-        activeDropdownId.value = id
-    }
-}
-
-const closeDropdowns = () => {
-    activeDropdownId.value = null
-}
 
 // --- LOGICA MODIFICA ---
 const openEditModal = (exam: Exam) => {
@@ -88,15 +55,13 @@ const openEditModal = (exam: Exam) => {
         lode: !!exam.lode 
     } 
     showEditModal.value = true
-    closeDropdowns()
 }
 
 const saveExam = async () => {
     if (!examToEdit.value) return;
     
-    // Validazione base
     if (!examToEdit.value.nome || !examToEdit.value.voto || !examToEdit.value.cfu || !examToEdit.value.data) {
-        alert("Compila tutti i campi obbligatori");
+        errorMessage.value = 'Compila tutti i campi obbligatori';
         return;
     }
 
@@ -104,13 +69,15 @@ const saveExam = async () => {
         await api.put(`/exams/${examToEdit.value.id}`, examToEdit.value);
         
         showEditModal.value = false;
-        successMessage.value = "Esame aggiornato con successo!";
+        errorMessage.value = '';
+        successMessage.value = 'Esame aggiornato con successo!';
         setTimeout(() => successMessage.value = '', 3000);
         
-        fetchExams(); // Ricarica lista per aggiornare XP totali e ordinamento
-    } catch (error: any) {
-        console.error("Errore aggiornamento:", error);
-        alert(error.response?.data?.message || "Errore durante l'aggiornamento");
+        fetchExams();
+    } catch (error: unknown) {
+        const msg = error instanceof Error ? error.message : "Errore durante l'aggiornamento";
+        const axiosMsg = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
+        errorMessage.value = axiosMsg || msg;
     }
 }
 
@@ -118,7 +85,6 @@ const saveExam = async () => {
 const confirmDelete = (id: number | string) => {
     examToDeleteId.value = id
     showDeleteModal.value = true
-    closeDropdowns()
 }
 
 const deleteExam = async () => {
@@ -127,16 +93,14 @@ const deleteExam = async () => {
     try {
         await api.delete(`/exams/${examToDeleteId.value}`);
         
-        // Rimuovi localmente
         exams.value = exams.value.filter(e => e.id !== examToDeleteId.value);
         
         showDeleteModal.value = false;
         examToDeleteId.value = null;
-        successMessage.value = "Esame eliminato!";
+        successMessage.value = 'Esame eliminato!';
         setTimeout(() => successMessage.value = '', 3000);
-    } catch (error) {
-        console.error("Errore eliminazione:", error);
-        alert("Errore durante l'eliminazione");
+    } catch {
+        errorMessage.value = "Errore durante l'eliminazione. Riprova.";
     }
 }
 
@@ -157,12 +121,9 @@ const fetchExams = async () => {
       }
     })
     exams.value = response.data
-  } catch (error: any) {
-    console.error("Errore recupero dati:", error)
-    errorMessage.value = "Impossibile caricare i dati."
-    if (error.response && error.response.status === 401) {
-      router.push('/login')
-    }
+    errorMessage.value = ''
+  } catch {
+    errorMessage.value = 'Impossibile caricare i dati. Riprova più tardi.'
   } finally {
     loading.value = false
   }
@@ -189,7 +150,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex-grow flex flex-col bg-background-light font-sans" @click="closeDropdowns">
+  <div class="flex-grow flex flex-col bg-background-light font-sans">
     
     <NavBar />
 
@@ -266,89 +227,17 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div v-if="loading" class="text-center py-10 text-gray-500 text-xl animate-pulse">
-        Aggiornamento lista...
-      </div>
-
-      <div v-else-if="errorMessage" class="text-center py-10 text-red-500 text-xl font-bold">
+      <div v-if="errorMessage" class="text-center py-10 text-red-500 text-xl font-bold">
         {{ errorMessage }}
       </div>
 
-      <div v-else-if="exams.length === 0" class="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-gray-300">
-        <p class="text-2xl text-gray-400 font-bold mb-4">Nessun esame trovato</p>
-        <p class="text-gray-500">Prova a cambiare i filtri o inserisci un nuovo esame.</p>
-      </div>
-
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        
-        <div 
-          v-for="exam in exams" 
-          :key="exam.id"
-          class="bg-white border-[3px] border-black rounded-[2rem] p-6 relative hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
-        >
-          <!-- MENU DROPDOWN (Three Dots) -->
-          <div class="absolute top-5 right-5 z-10">
-              <button 
-                  @click="toggleDropdown(exam.id, $event)" 
-                  class="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition focus:outline-none bg-white/90 backdrop-blur-sm border border-gray-100 shadow-sm"
-              >
-                  <IconDotsHorizontal class="w-6 h-6" />
-              </button>
-
-              <div 
-                  v-if="activeDropdownId === exam.id" 
-                  class="absolute right-0 top-8 w-40 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden text-left animate-fade-in z-20"
-                  @click.stop
-              >
-                  <div class="py-1">
-                      <button 
-                          @click="openEditModal(exam)"
-                          class="w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-primary flex items-center gap-2"
-                      >
-                          <IconPencil class="w-4 h-4" />
-                          Modifica
-                      </button>
-
-                      <button 
-                          @click="confirmDelete(exam.id)"
-                          class="w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-gray-100"
-                      >
-                          <IconTrash class="w-4 h-4" />
-                          Elimina
-                      </button>
-                  </div>
-              </div>
-          </div>
-
-          <div class="flex justify-between items-start mb-6 pr-10">
-            <h3 class="text-2xl font-bold text-black leading-tight w-2/3 break-words pr-2">
-              {{ exam.nome }}
-            </h3>
-            
-            <div 
-              class="w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold shadow-sm shrink-0 transition-colors duration-300"
-              :class="getBadgeColor(exam.voto)"
-            >
-              {{ exam.voto }}
-              <span v-if="exam.lode" class="text-xs align-top ml-0.5 -mt-2">L</span>
-            </div>
-          </div>
-
-          <div class="flex justify-between items-end mt-4">
-            
-            <div class="flex items-center gap-2 text-black font-bold text-lg">
-              <IconCalendar class="h-6 w-6 text-gray-600" />
-              <span>{{ formatDate(exam.data) }}</span>
-            </div>
-
-            <div class="text-black font-bold text-2xl">
-              {{ exam.cfu }} CFU
-            </div>
-
-          </div>
-        </div>
-
-      </div>
+      <ExamTable 
+        v-else 
+        :exams="exams" 
+        :loading="loading" 
+        @edit="openEditModal" 
+        @delete="confirmDelete" 
+      />
 
       <!-- MODALE MODIFICA -->
       <div v-if="showEditModal && examToEdit" class="fixed inset-0 z-[100] flex items-center justify-center p-4">

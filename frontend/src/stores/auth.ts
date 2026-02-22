@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import api from "../api/axios";
-import { User } from "../types";
+import type { User, RegisterPayload } from "../types";
 
 interface AuthState {
   user: User | null;
@@ -21,54 +21,56 @@ export const useAuthStore = defineStore("auth", {
 
   actions: {
 
+    clearError(): void {
+      this.error = null;
+    },
+
     async login(email: string, password: string): Promise<boolean> {
       this.loading = true;
       this.error = null;
       try {
-
         const response = await api.post("/auth/login", { email, password });
-
-
-        this.user = response.data.user;
-        localStorage.setItem("user", JSON.stringify(this.user));
-        return true; // Login riuscito
-      } catch (err: any) {
-        this.error = err.response?.data?.message || "Login fallito";
-        return false;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-
-    async register(userData: any): Promise<boolean> {
-      this.loading = true;
-      this.error = null;
-      try {
-        const response = await api.post("/auth/register", userData);
-
-
         this.user = response.data.user;
         localStorage.setItem("user", JSON.stringify(this.user));
         return true;
-      } catch (err: any) {
-        this.error = err.response?.data?.message || "Registrazione fallita";
+      } catch (err: unknown) {
+        const message = err instanceof Error
+          ? err.message
+          : (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+        this.error = message ?? "Login fallito";
         return false;
       } finally {
         this.loading = false;
       }
     },
 
+    async register(payload: RegisterPayload): Promise<boolean> {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.post("/auth/register", payload);
+        this.user = response.data.user;
+        localStorage.setItem("user", JSON.stringify(this.user));
+        return true;
+      } catch (err: unknown) {
+        const message = err instanceof Error
+          ? err.message
+          : (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+        this.error = message ?? "Registrazione fallita";
+        return false;
+      } finally {
+        this.loading = false;
+      }
+    },
 
     async logout(): Promise<void> {
       try {
         await api.post("/auth/logout");
-      } catch (err) {
-        console.error("Logout error", err);
+      } catch {
+        // Il logout locale avviene comunque
       } finally {
         this.user = null;
         localStorage.removeItem("user");
-        // lascia che sia il componente a fare router.push('/')
       }
     },
   },

@@ -1,7 +1,8 @@
 <script setup lang="ts">
   import NavBar from '../components/NavBar.vue'
   import { ref, onMounted } from 'vue'
-  import api from '../api/axios' // Used api instead of axios direct import to use interceptors if any, though the original code used axios. switching to api/axios for consistency
+  import api from '../api/axios'
+  import type { StatsResponse } from '../types'
   import {
     Chart as ChartJS,
     CategoryScale,
@@ -30,6 +31,7 @@
   )
   
   const loading = ref(true)
+  const errorMsg = ref('')
   
   const mediaPonderata = ref(0)
   const cfuTotali = ref(0)
@@ -103,10 +105,7 @@
   
   onMounted(async () => {
     try {
-      // Using direct axios or api/axios? The original code had http://localhost:3000/api/stats directly.
-      // I should probably use the configured api instance if possible, but let's stick to logic.
-      // Assuming api/axios is configured with baseURL, let's try to use it to be consistent with other pages.
-      const response = await api.get('/stats') // Cleaned up URL
+      const response = await api.get<StatsResponse>('/stats')
       
       const apiData = response.data
   
@@ -151,8 +150,8 @@
         ]
       }
   
-    } catch (error) {
-      console.error("Errore caricamento statistiche:", error)
+    } catch {
+      errorMsg.value = 'Impossibile caricare le statistiche. Riprova più tardi.'
     } finally {
       loading.value = false
     }
@@ -178,6 +177,10 @@
   
         <div v-if="loading" class="text-center py-10 text-gray-500 text-lg animate-pulse">
           Caricamento dati in corso...
+        </div>
+  
+        <div v-else-if="errorMsg" class="bg-red-50 border-l-4 border-red-500 p-6 rounded-r-lg shadow-sm">
+          <p class="text-red-700 font-bold">{{ errorMsg }}</p>
         </div>
   
         <div v-else-if="!chartData.labels || !chartData.labels.length" class="text-center py-20 bg-white rounded-3xl border-2 border-gray-200 shadow-sm">
