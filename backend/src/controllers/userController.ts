@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { userService } from '../services/userService';
 
-export const getLeaderboard = async (req: Request, res: Response) => {
+export const getLeaderboard = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.user) return res.status(401).json({ message: 'Non autenticato' });
 
@@ -9,7 +9,6 @@ export const getLeaderboard = async (req: Request, res: Response) => {
         res.json(result);
 
     } catch (error) {
-        console.error('Errore recupero classifica:', error);
-        res.status(500).json({ message: 'Errore recupero classifica' });
+        next(error);
     }
 };

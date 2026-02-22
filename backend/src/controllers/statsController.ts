@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { pool } from '../config/db';
 import { RowDataPacket } from 'mysql2';
 
-export const getStats = async (req: Request, res: Response) => {
+export const getStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.user) return res.status(401).json({ message: 'Non autenticato' });
 
@@ -64,7 +64,6 @@ export const getStats = async (req: Request, res: Response) => {
         });
 
     } catch (error) {
-        console.error('Errore calcolo stats:', error);
-        res.status(500).json({ message: 'Errore del server' });
+        next(error);
     }
 };

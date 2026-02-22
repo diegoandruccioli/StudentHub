@@ -1,20 +1,22 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { settingsService } from '../services/settingsService';
+import { logger } from '../utils/logger';
 
-export const getSettings = async (req: Request, res: Response) => {
+export const getSettings = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.user) return res.status(401).json({ message: 'Non autenticato' });
 
         const settings = await settingsService.getSettings(req.user.id);
         res.json(settings);
-    } catch (error: any) {
-        console.error(error);
-        const status = error.message === 'Impostazioni non trovate' ? 404 : 500;
-        res.status(status).json({ message: error.message || 'Errore nel recupero impostazioni' });
+    } catch (error) {
+        if (error instanceof Error && error.message === 'Impostazioni non trovate') {
+            return res.status(404).json({ message: error.message });
+        }
+        next(error);
     }
 };
 
-export const updateSettings = async (req: Request, res: Response) => {
+export const updateSettings = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.user) return res.status(401).json({ message: 'Non autenticato' });
 
@@ -25,9 +27,13 @@ export const updateSettings = async (req: Request, res: Response) => {
             settings: result
         });
 
-    } catch (error: any) {
-        console.error(error);
-        const status = error.message.startsWith('Il tema') || error.message.startsWith('La soglia') || error.message.startsWith('Le soglie') ? 400 : 500;
-        res.status(status).json({ message: error.message || 'Errore aggiornamento impostazioni' });
+    } catch (error) {
+        if (error instanceof Error &&
+            (error.message.startsWith('Il tema') ||
+             error.message.startsWith('La soglia') ||
+             error.message.startsWith('Le soglie'))) {
+            return res.status(400).json({ message: error.message });
+        }
+        next(error);
     }
 };

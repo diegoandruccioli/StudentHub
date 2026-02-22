@@ -1,8 +1,9 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { adminService } from '../services/adminService';
+import { logger } from '../utils/logger';
 
 
-export const getAllUsers = async (req: Request, res: Response): Promise<void> => {
+export const getAllUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 20;
@@ -10,36 +11,33 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
         const result = await adminService.getAllUsers(page, limit);
         res.status(200).json(result);
     } catch (error) {
-        console.error('Errore getAllUsers:', error);
-        res.status(500).json({ message: 'Errore nel recupero della lista utenti' });
+        next(error);
     }
 };
 
 
-export const getAdminStats = async (req: Request, res: Response): Promise<void> => {
+export const getAdminStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const stats = await adminService.getAdminStats();
         res.status(200).json(stats);
     } catch (error) {
-        console.error('Errore getAdminStats:', error);
-        res.status(500).json({ message: 'Errore nel recupero delle statistiche' });
+        next(error);
     }
 };
 
 
-export const getGlobalRanking = async (req: Request, res: Response): Promise<void> => {
+export const getGlobalRanking = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const ranking = await adminService.getGlobalRanking();
         res.status(200).json(ranking);
     } catch (error) {
-        console.error('Errore getGlobalRanking:', error);
-        res.status(500).json({ message: 'Errore nel recupero della classifica globale' });
+        next(error);
     }
 };
 
 
 
-export const updateUserRole = async (req: Request, res: Response): Promise<void> => {
+export const updateUserRole = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { id } = req.params;
     const { nuovo_ruolo } = req.body;
 
@@ -58,20 +56,19 @@ export const updateUserRole = async (req: Request, res: Response): Promise<void>
             newRole: result.newRole
         });
 
-    } catch (error: any) {
-        console.error('Errore updateUserRole:', error);
-        if (error.message === 'Utente non trovato') {
-             res.status(404).json({ message: error.message });
-        } else if (error.message.startsWith('Ruolo non valido') || error.message.startsWith('Non puoi')) {
-             res.status(400).json({ message: error.message });
+    } catch (error) {
+        if (error instanceof Error && error.message === 'Utente non trovato') {
+            res.status(404).json({ message: error.message });
+        } else if (error instanceof Error && (error.message.startsWith('Ruolo non valido') || error.message.startsWith('Non puoi'))) {
+            res.status(400).json({ message: error.message });
         } else {
-             res.status(500).json({ message: 'Errore nell\'aggiornamento del ruolo' });
+            next(error);
         }
     }
 };
 
 
-export const deleteAdminAccount = async (req: Request, res: Response): Promise<void> => {
+export const deleteAdminAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const userIdToDelete = req.params.id;
 
     try {
@@ -84,14 +81,13 @@ export const deleteAdminAccount = async (req: Request, res: Response): Promise<v
 
         res.status(200).json({ message: 'Account Admin eliminato con successo.' });
 
-    } catch (error: any) {
-        console.error('Errore deleteAdminAccount:', error);
-        if (error.message === 'Utente non trovato.') {
+    } catch (error) {
+        if (error instanceof Error && error.message === 'Utente non trovato.') {
             res.status(404).json({ message: error.message });
-        } else if (error.message.startsWith('Questa azione') || error.message.startsWith('Non puoi')) {
+        } else if (error instanceof Error && (error.message.startsWith('Questa azione') || error.message.startsWith('Non puoi'))) {
             res.status(400).json({ message: error.message });
         } else {
-            res.status(500).json({ message: 'Errore nell\'eliminazione dell\'account.' });
+            next(error);
         }
     }
 };

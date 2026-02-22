@@ -6,7 +6,13 @@ export interface User {
   ruolo: string;
   xp_totali?: number;
   created_at?: string;
-  [key: string]: any;
+}
+
+export interface RegisterPayload {
+  nome: string;
+  cognome: string;
+  email: string;
+  password: string;
 }
 
 export interface Exam {
@@ -14,7 +20,7 @@ export interface Exam {
   nome: string;
   voto: number;
   cfu: number;
-  lode: boolean | number;
+  lode: boolean;
   data: string;
   user_id?: number | string;
 }
@@ -39,4 +45,43 @@ export interface Badge {
   xp_valore: number;
   icona?: string;
   sbloccato?: boolean;
+}
+
+export interface MyBadge {
+  id_obiettivo: number;
+}
+
+// Alias usato in ObjectivesPage per chiarezza di lettura
+export type MyBadgeResponse = MyBadge;
+
+export interface PaginatedMeta {
+  totalItems: number;
+  totalStudents: number;
+  totalAdmins: number;
+  totalPages: number;
+  currentPage: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginatedMeta;
+}
+
+export interface StatsResponse {
+  mediaPonderata: number;
+  totaleCfu: number;
+  baseLaurea: number;
+  chartData: {
+    labels: string[];
+    data: number[];
+    examNames: string[];
+  };
+}
+
+export interface ExamPayload {
+  nome: string;
+  voto: number;
+  lode: boolean;
+  cfu: number;
+  data: string;
 }
