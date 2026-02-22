@@ -1,6 +1,6 @@
 # StudentHub - Piattaforma di Gestione Carriera Universitaria 🎓
 
-> **Nota Importante**: Questo file funge da copertina per il progetto. Per la documentazione completa, le specifiche tecniche dettagliate, l'analisi architettonica e la relazione richiesta dai professori, si prega di fare riferimento al file principale: 📄 **[report_studenthub.pdf](./report_studenthub.pdf)**
+> **Nota Importante**: Questo file funge da copertina per il progetto. Per la documentazione completa, le specifiche tecniche dettagliate, l'analisi architettonica e la relazione richiesta dai professori, si prega di fare riferimento al file principale: 📄 **[report_studenthub.pdf](./docs/report_studenthub.pdf)**
 
 StudentHub è una piattaforma web interattiva progettata per trasformare la gestione della carriera universitaria in un'esperienza coinvolgente attraverso la Gamification. Sviluppato per il corso di **Ingegneria dei Sistemi Web** presso l'Università di Bologna.
 
