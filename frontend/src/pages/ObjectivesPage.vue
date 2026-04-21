@@ -3,36 +3,26 @@ import NavBar from '../components/NavBar.vue'
 import { ref, onMounted } from 'vue'
 import api from '../api/axios'
 import { useAuthStore } from '../stores/auth'
-import type { User, Badge } from '../types'
-import IconCheck from '../components/icons/IconCheck.vue'
+import { useGamificationStore } from '../stores/gamification'
+import type { User } from '../types'
+import ObjectiveCard from '../components/ObjectiveCard.vue'
 
 const authStore = useAuthStore()
+const gamificationStore = useGamificationStore()
 const loading = ref(true)
 const leaderboard = ref<User[]>([])
-const objectives = ref<Badge[]>([])
 const errorMsg = ref('')
 
 const fetchData = async () => {
   loading.value = true
   errorMsg.value = ''
   try {
-    const [lbRes, allBadgesRes, myBadgesRes] = await Promise.all([
-      api.get<{ leaderboard: User[] }>('/users/leaderboard'),
-      api.get<Badge[]>('/gamification/badges'),
-      api.get<any[]>('/gamification/my-badges')
-    ])
-
+    const lbRes = await api.get<{ leaderboard: User[] }>('/users/leaderboard')
     leaderboard.value = lbRes.data.leaderboard
 
-    const unlockedIds = new Set(myBadgesRes.data.map((b: any) => b.id_obiettivo))
-    objectives.value = allBadgesRes.data.map((badge: Badge) => ({
-      ...badge,
-      sbloccato: unlockedIds.has(badge.id)
-    }))
-
-  } catch (error) {
-    console.error("Errore caricamento dati:", error)
-    errorMsg.value = "Impossibile caricare i dati."
+    await gamificationStore.fetchBadges()
+  } catch {
+    errorMsg.value = 'Impossibile caricare i dati.'
   } finally {
     loading.value = false
   }
@@ -123,30 +113,12 @@ onMounted(() => {
               <span class="w-24 text-right">Premio</span>
             </div>
 
-            <div class="divide-y divide-gray-200">
-              <div 
-                v-for="obj in objectives" 
+            <div class="p-4 space-y-4">
+              <ObjectiveCard 
+                v-for="obj in gamificationStore.badgesWithUnlockStatus" 
                 :key="obj.id" 
-                class="flex items-center p-4 transition"
-                :class="obj.sbloccato ? 'bg-white' : 'bg-gray-50 opacity-70'"
-              >
-                <div class="w-10 h-10 flex items-center justify-center font-bold text-2xl" :class="obj.sbloccato ? 'text-green-500' : 'text-gray-300'">
-                  <IconCheck v-if="obj.sbloccato" class="w-6 h-6" />
-                  <span v-else>{{ obj.id }}</span>
-                </div>
-
-                <div class="flex-grow pl-4">
-                  <div class="font-bold text-secondary">{{ obj.nome }}</div>
-                  <div class="text-xs text-gray-500">{{ obj.descrizione }}</div>
-                </div>
-
-                <div class="w-24 text-right">
-                  <span class="inline-block px-3 py-1 rounded-full text-xs font-bold"
-                        :class="obj.sbloccato ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-gray-200 text-gray-500'">
-                    +{{ obj.xp_valore }} xp
-                  </span>
-                </div>
-              </div>
+                :badge="obj" 
+              />
             </div>
           </div>
         </div>

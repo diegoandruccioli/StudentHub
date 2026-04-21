@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS esami (
     data DATE NOT NULL,
     xp_guadagnati INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (id_utente) REFERENCES utenti(id) ON DELETE CASCADE
 );
 
@@ -56,6 +57,8 @@ CREATE TABLE IF NOT EXISTS obiettivi_sbloccati (
     FOREIGN KEY (id_obiettivo) REFERENCES obiettivi(id) ON DELETE CASCADE
 );
 
+CREATE INDEX idx_ob_sbloccati_id_utente ON obiettivi_sbloccati(id_utente);
+
 
 CREATE TABLE IF NOT EXISTS impostazioni_utente (
     id_utente INT PRIMARY KEY,
@@ -65,3 +68,27 @@ CREATE TABLE IF NOT EXISTS impostazioni_utente (
     CONSTRAINT chk_soglie CHECK (rgb_soglia_bassa <= rgb_soglia_alta),
     FOREIGN KEY (id_utente) REFERENCES utenti(id) ON DELETE CASCADE
 );
+
+
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_utente INT NOT NULL,
+    token_hash VARCHAR(255) NOT NULL UNIQUE,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_utente) REFERENCES utenti(id) ON DELETE CASCADE
+);
+
+
+-- =====================================================
+-- INDEX DI PERFORMANCE (dichiarati dopo tutte le CREATE TABLE)
+-- =====================================================
+
+-- Query frequenti: esami per utente (CareerPage, StatsPage)
+CREATE INDEX idx_esami_id_utente ON esami(id_utente);
+
+-- Cleanup automatico token scaduti (WHERE expires_at < NOW())
+CREATE INDEX idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
+
+-- Join token → utente in protect middleware
+CREATE INDEX idx_refresh_tokens_id_utente ON refresh_tokens(id_utente);

@@ -3,6 +3,7 @@ import NavBar from '../components/NavBar.vue'
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../api/axios'
+import type { ExamPayload } from '../types'
 import IconTrash from '../components/icons/IconTrash.vue'
 import IconPlusCircle from '../components/icons/IconPlusCircle.vue'
 interface ExamRow {
@@ -51,10 +52,10 @@ const submitExams = async () => {
   
   try {
 
-    const payload = []
+    const payload: ExamPayload[] = []
     for (const row of rows.value) {
       if (!row.nome || !row.voto || !row.data || !row.cfu) {
-        throw new Error("Compila tutti i campi di tutte le righe.")
+        throw new Error('Compila tutti i campi di tutte le righe.')
       }
       
       const votoNum = Number(row.voto)
@@ -81,9 +82,9 @@ const submitExams = async () => {
 
     router.push('/career')
 
-  } catch (error: any) {
-    console.error(error)
-    errorMsg.value = error.response?.data?.message || error.message || "Errore durante il salvataggio."
+  } catch (error: unknown) {
+    const axiosMsg = (error as { response?: { data?: { message?: string } } }).response?.data?.message
+    errorMsg.value = axiosMsg || (error instanceof Error ? error.message : 'Errore durante il salvataggio.')
   } finally {
     loading.value = false
   }

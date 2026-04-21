@@ -4,16 +4,14 @@ import ConfirmModal from '../components/ConfirmModal.vue'
 import UserTableList from '../components/UserTableList.vue'
 import { ref, onMounted, computed } from 'vue'
 import api from '../api/axios'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import type { User } from '../types'
+import type { User, PaginatedResponse } from '../types'
 import IconExclamation from '../components/icons/IconExclamation.vue'
 import IconCheckMark from '../components/icons/IconCheckMark.vue'
 import IconUsersGroup from '../components/icons/IconUsersGroup.vue'
 import IconAcademicCap from '../components/icons/IconAcademicCap.vue'
 import IconShieldCheck from '../components/icons/IconShieldCheck.vue'
 
-const router = useRouter()
 const authStore = useAuthStore()
 const isAdminSuper = computed(() => authStore.user?.ruolo === '2')
 
@@ -60,12 +58,10 @@ const confirmAction = async () => {
 const fetchUsers = async (page = 1) => {
     loading.value = true
     try {
-        const response = await api.get<{ data: User[], meta: any }>(`/admin/users?page=${page}&limit=${itemsPerPage.value}`)
+        const response = await api.get<PaginatedResponse<User>>(`/admin/users?page=${page}&limit=${itemsPerPage.value}`)
         
-        // Risposta paginata: { data: [], meta: { ... } }
         users.value = response.data.data
         
-        // Metadata globali
         totalUsersCount.value = response.data.meta.totalItems
         totalStudentsCount.value = response.data.meta.totalStudents
         totalAdminsCount.value = response.data.meta.totalAdmins
@@ -73,12 +69,8 @@ const fetchUsers = async (page = 1) => {
         totalPages.value = response.data.meta.totalPages
         currentPage.value = response.data.meta.currentPage
         
-    } catch (error: any) {
-        console.error("Errore admin:", error)
-        errorMessage.value = "Accesso Negato o Errore Server."
-        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-            setTimeout(() => router.push('/home'), 2000)
-        }
+    } catch {
+        errorMessage.value = 'Accesso negato o errore del server.'
     } finally {
         loading.value = false
     }
@@ -98,11 +90,10 @@ const handleUpdateRole = async (user: User, newRole: string) => {
     async () => {
         try {
             await api.put(`/admin/users/${user.id}/role`, { nuovo_ruolo: newRole })
-            successMessage.value = "Ruolo aggiornato con successo"
+            successMessage.value = 'Ruolo aggiornato con successo'
             setTimeout(() => successMessage.value = '', 3000)
             fetchUsers(currentPage.value)
-        } catch (error) {
-            console.error(error)
+        } catch {
             errorMessage.value = "Errore durante l'aggiornamento del ruolo"
         }
     }
@@ -116,11 +107,10 @@ const handleDeleteUser = async (user: User) => {
     async () => {
         try {
             await api.delete(`/admin/users/${user.id}`)
-            successMessage.value = "Utente eliminato con successo"
+            successMessage.value = 'Utente eliminato con successo'
             setTimeout(() => successMessage.value = '', 3000)
             fetchUsers(currentPage.value)
-        } catch (error) {
-            console.error(error)
+        } catch {
             errorMessage.value = "Errore durante l'eliminazione dell'utente"
         }
     }

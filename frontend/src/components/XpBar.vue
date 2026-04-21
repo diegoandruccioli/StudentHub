@@ -27,8 +27,8 @@ onMounted(async () => {
   try {
     const response = await api.get<GamificationStatus>('/gamification/status')
     gamificationData.value = response.data
-  } catch (error) {
-    console.error("Errore recupero livello:", error)
+  } catch {
+    // Fallback silenzioso: mostra stato di default (già inizializzato)
   } finally {
     loading.value = false
   }
@@ -54,8 +54,13 @@ onMounted(async () => {
       <IconBookOpen width="70" height="70" class="drop-shadow-md" />
     </div>
       
-      <div 
+    <div 
         class="h-full bg-primary border-r-4 border-secondary transition-all duration-1000 ease-out"
+        role="progressbar"
+        :aria-valuenow="gamificationData.progress.percentuale"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        :aria-label="`Progresso livello: ${gamificationData.progress.percentuale}% — ${gamificationData.xp_totali} XP`"
         :style="{ width: progressWidth }"
       ></div>
     </div>
